@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tell My Salary - 薪資計算機</title>
+    <style>
+        :root {
+            --morandi-blue-green: #B8C1B0; /* 莫蘭迪淺藍綠 */
+            --morandi-gray: #A3B18A;
+            --pay-5-color: #95A3B3; /* 5號領薪：莫蘭迪藍灰 */
+            --pay-10-color: #8DA994; /* 10號領薪：莫蘭迪草綠 */
+            --bg-color: #F4F5F2;
+            --text-color: #5E6B5E;
+        }
+
+        body {
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        /* 頁面切換按鈕 */
+        .tabs {
+            display: flex;
+            background: var(--morandi-blue-green);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .tab-btn.active {
+            background: rgba(255,255,255,0.2);
+            font-weight: bold;
+        }
+
+        .page {
+            padding: 20px;
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            border-left: 4px solid var(--morandi-gray);
+            padding-left: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* 月曆樣式 */
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-header {
+            font-weight: bold;
+            font-size: 0.8rem;
+            padding: 10px 0;
+        }
+
+        .day {
+            padding: 10px 0;
+            background: #f9f9f9;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            position: relative;
+        }
+
+        .day.has-work::after {
+            content: '💰';
+            font-size: 10px;
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+        }
+
+        /* 表單樣式 */
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            background: #fafafa;
+        }
+
+        button.add-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--morandi-gray);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        /* 統計頁面卡片 */
+        .salary-card {
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .card-5 { background-color: var(--pay-5-color); }
+        .card-10 { background-color: var(--pay-10-color); }
+
+        .salary-amount {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: block;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showPage('page1')">排班紀錄</button>
+            <button class="tab-btn" onclick="showPage('page2')">薪資統計</button>
+        </div>
+
+        <div id="page1" class="page active">
+            <h2>2026 年 3 月</h2>
+            <div class="calendar" id="calendar">
+                </div>
+
+            <hr style="border: 0.5px solid #eee; margin: 20px 0;">
+
+            <div class="input-group">
+                <label>上班日期：</label>
+                <input type="date" id="workDate" value="2026-03-17">
+            </div>
+            <div class="input-group">
+                <label>當日薪水估計：</label>
+                <input type="number" id="dailyPay" placeholder="例如：1500">
+            </div>
+            <div class="input-group">
+                <label>領薪日：</label>
+                <select id="payDay">
+                    <option value="5">下個月 5 號入帳</option>
+                    <option value="10">下個月 10 號入帳</option>
+                </select>
+            </div>
+            <button class="add-btn" onclick="addRecord()">儲存上班紀錄</button>
+        </div>
+
+        <div id="page2" class="page">
+            <h2>薪資入帳預估</h2>
+            <div id="statsContent">
+                <div class="salary-card card-5">
+                    <span>下個月 5 號總計</span>
+                    <span class="salary-amount" id="total5">$ 0</span>
+                </div>
+                <div class="salary-card card-10">
+                    <span>下個月 10 號總計</span>
+                    <span class="salary-amount" id="total10">$ 0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let records = [];
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function renderCalendar() {
+            const cal = document.getElementById('calendar');
+            cal.innerHTML = '';
+            const headers = ['日', '一', '二', '三', '四', '五', '六'];
+            headers.forEach(h => cal.innerHTML += `<div class="calendar-header">${h}</div>`);
+            
+            // 簡易生成 31 天 (以3月為例)
+            for (let i = 1; i <= 31; i++) {
+                const dateStr = `2026-03-${i.toString().padStart(2, '0')}`;
+                const hasWork = records.some(r => r.date === dateStr);
+                cal.innerHTML += `<div class="day ${hasWork ? 'has-work' : ''}">${i}</div>`;
+            }
+        }
+
+        function addRecord() {
+            const date = document.getElementById('workDate').value;
+            const pay = parseFloat(document.getElementById('dailyPay').value) || 0;
+            const type = document.getElementById('payDay').value;
+
+            if (pay > 0) {
+                records.push({ date, pay, type });
+                alert('已記錄成功！');
+                updateStats();
+                renderCalendar();
+            }
+        }
+
+        function updateStats() {
+            let sum5 = records.filter(r => r.type === '5').reduce((a, b) => a + b.pay, 0);
+            let sum10 = records.filter(r => r.type === '10').reduce((a, b) => a + b.pay, 0);
+            
+            document.getElementById('total5').innerText = `$ ${sum5.toLocaleString()}`;
+            document.getElementById('total10').innerText = `$ ${sum10.toLocaleString()}`;
+        }
+
+        // 初始化
+        renderCalendar();
+    </script>
+</body>
+</html>
