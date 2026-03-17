@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tell My Doggy - Salary V8</title>
+    <title>Tell My Doggy - Salary V9</title>
     <style>
         :root {
             --morandi-green: #A3B18A;
@@ -64,12 +64,27 @@
             border-radius: 6px; margin-bottom: 5px; cursor: pointer; font-size: 14px;
         }
 
-        /* 表單對齊修正 */
-        .input-group { margin-bottom: 15px; width: 100%; box-sizing: border-box; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 14px; color: var(--morandi-green); text-align: center; }
+        /* 欄位對齊修正專區 */
+        .input-group { 
+            margin-bottom: 15px; 
+            width: 100%; 
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* 強制標籤與欄位都置中 */
+        }
+        
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: bold; 
+            font-size: 14px; 
+            color: var(--morandi-green); 
+            text-align: center; 
+        }
         
         input, select {
-            width: 100%; 
+            width: 100% !important; /* 強制填滿容器 */
+            max-width: 100%; /* 防止溢出 */
             padding: 12px; 
             border: 2px solid var(--morandi-light); 
             border-radius: 15px;
@@ -77,16 +92,24 @@
             font-size: 16px; 
             background: white; 
             outline: none; 
-            box-sizing: border-box; /* 確保 padding 不會撐破寬度 */
-            text-align: center; /* 內容置中 */
-            text-align-last: center; /* 下拉選單文字置中 */
+            box-sizing: border-box; /* 極為重要：包含 padding 寬度 */
+            text-align: center; 
+            text-align-last: center; 
+            appearance: none; /* 去除瀏覽器預設樣式 */
+            -webkit-appearance: none;
         }
 
-        .flex-row { display: flex; gap: 10px; align-items: center; }
+        /* 針對日期欄位的特殊修正，確保它在各手機上寬度乖巧 */
+        input[type="date"] {
+            min-height: 48px;
+            display: block;
+        }
+
+        .flex-row { display: flex; gap: 10px; width: 100%; align-items: center; }
         
-        /* 按鈕樣式 */
         .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
         .main-btn { width: 100%; padding: 15px; background: var(--morandi-green); color: white; border: none; border-radius: 15px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        .secondary-btn { width: 100%; padding: 10px; background: white; color: var(--morandi-light); border: 1px solid var(--morandi-light); border-radius: 15px; font-size: 14px; cursor: pointer; }
         .delete-btn { width: 100%; padding: 10px; background: white; color: var(--morandi-red); border: 1px solid var(--morandi-red); border-radius: 15px; font-size: 14px; cursor: pointer; margin-top: 5px; }
 
         /* 統計頁篩選框 */
@@ -96,10 +119,9 @@
             border-radius: 15px;
             margin-bottom: 20px;
         }
-        .filter-box label { text-align: left; font-size: 12px; margin-bottom: 2px; }
-        .filter-box input { padding: 8px; font-size: 14px; margin-bottom: 10px; border-radius: 10px; }
+        .filter-box label { text-align: left; font-size: 12px; margin-bottom: 2px; color: var(--morandi-light); }
+        .filter-box input { padding: 8px; font-size: 14px; margin-bottom: 10px; border-radius: 10px; width: 100%; }
 
-        /* 統計卡片 */
         .stat-card { padding: 15px; border-radius: 15px; margin-bottom: 12px; color: white; background-color: var(--morandi-green); }
         .stat-item { font-size: 13px; margin-top: 5px; padding-left: 10px; border-left: 2px solid rgba(255,255,255,0.3); cursor: pointer; }
         .total-summary { text-align: center; border-top: 1px dashed var(--morandi-light); padding-top: 15px; margin-top: 15px; }
@@ -157,11 +179,20 @@
         <div id="page3" class="page">
             <h2>薪資統計</h2>
             <div class="filter-box">
-                <label>開始日期</label>
-                <input type="date" id="filterStart">
-                <label>結束日期</label>
-                <input type="date" id="filterEnd">
-                <button class="main-btn" style="padding: 10px;" onclick="renderStats()">套用篩選</button>
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1;">
+                        <label>從</label>
+                        <input type="date" id="filterStart">
+                    </div>
+                    <div style="flex:1;">
+                        <label>到</label>
+                        <input type="date" id="filterEnd">
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:5px;">
+                    <button class="main-btn" style="padding: 10px; flex:2;" onclick="renderStats()">套用篩選</button>
+                    <button class="secondary-btn" style="flex:1;" onclick="clearFilter()">取消篩選</button>
+                </div>
             </div>
             <div id="statsList"></div>
             <div class="total-summary" id="totalSummary"></div>
@@ -186,9 +217,8 @@
 
     <script>
         let viewDate = new Date(2026, 2, 1);
-        let workRecords = JSON.parse(localStorage.getItem('workRecords_v8')) || [];
-        // 初始化包含「當日現領」
-        let payDayOptions = JSON.parse(localStorage.getItem('payDayOptions_v8')) || [
+        let workRecords = JSON.parse(localStorage.getItem('workRecords_v9')) || [];
+        let payDayOptions = JSON.parse(localStorage.getItem('payDayOptions_v9')) || [
             { id: 'opt_cash', monthType: '當月', day: 0, label: '當日現領' },
             { id: 'opt_1', monthType: '下個月', day: 5, label: '下個月 5 號入帳' },
             { id: 'opt_2', monthType: '下個月', day: 10, label: '下個月 10 號入帳' }
@@ -299,7 +329,7 @@
             let pDate = new Date(y, m-1, d);
             
             if(optId === 'opt_cash') {
-                // 當日現領，領薪日等於上班日
+                // 當日現領
             } else {
                 if(opt.monthType === '下個月') pDate.setMonth(pDate.getMonth() + 1);
                 pDate.setDate(opt.day);
@@ -308,7 +338,7 @@
 
             if (editingId) workRecords = workRecords.filter(r => r.id !== editingId);
             workRecords.push({ id: editingId || 'id_' + Date.now(), name, date, pay, payOptionId: optId, actualPayDate });
-            localStorage.setItem('workRecords_v8', JSON.stringify(workRecords));
+            localStorage.setItem('workRecords_v9', JSON.stringify(workRecords));
             resetForm();
             showPage('page1');
         }
@@ -316,7 +346,7 @@
         function confirmDelete() {
             if(confirm("確定要刪除這筆紀錄嗎？")) {
                 workRecords = workRecords.filter(r => r.id !== editingId);
-                localStorage.setItem('workRecords_v8', JSON.stringify(workRecords));
+                localStorage.setItem('workRecords_v9', JSON.stringify(workRecords));
                 resetForm();
                 showPage('page1');
             }
@@ -342,21 +372,33 @@
             }, {});
 
             let grandTotal = 0;
-            Object.keys(grouped).sort().forEach(date => {
+            const sortedDates = Object.keys(grouped).sort();
+            
+            if(sortedDates.length === 0) {
+                list.innerHTML = '<p style="text-align:center; color:#ccc; margin-top:20px;">無打工紀錄</p>';
+            }
+
+            sortedDates.forEach(date => {
                 grandTotal += grouped[date].total;
                 const card = document.createElement('div');
                 card.className = 'stat-card';
-                card.innerHTML = `<div style="font-weight:bold;">${date} 領取</div><div style="font-size:24px;">$${grouped[date].total}</div>`;
+                card.innerHTML = `<div style="font-weight:bold;">${date} 領取</div><div style="font-size:24px;">$${grouped[date].total.toLocaleString()}</div>`;
                 grouped[date].items.forEach(item => {
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'stat-item';
-                    itemDiv.innerText = `└ ${item.name}: $${item.pay}`;
+                    itemDiv.innerText = `└ ${item.name}: $${item.pay.toLocaleString()}`;
                     itemDiv.onclick = () => startEdit(item.id);
                     card.appendChild(itemDiv);
                 });
                 list.appendChild(card);
             });
-            summary.innerHTML = `<p style="color:var(--morandi-light);">區間總計金額</p><h2 style="font-size:30px;">$${grandTotal}</h2>`;
+            summary.innerHTML = `<p style="color:var(--morandi-light);">期間總金額</p><h2 style="font-size:30px; margin:0; color:var(--morandi-green);">$${grandTotal.toLocaleString()}</h2>`;
+        }
+
+        function clearFilter() {
+            document.getElementById('filterStart').value = '';
+            document.getElementById('filterEnd').value = '';
+            renderStats();
         }
 
         function renderOptions() {
@@ -374,13 +416,14 @@
             const day = document.getElementById('newPayDay').value;
             if (!day) return alert("請輸入日期");
             payDayOptions.push({ id: 'opt_' + Date.now(), monthType: type, day: parseInt(day), label: `${type} ${day} 號入帳` });
-            localStorage.setItem('payDayOptions_v8', JSON.stringify(payDayOptions));
+            localStorage.setItem('payDayOptions_v9', JSON.stringify(payDayOptions));
             renderOptions();
+            document.getElementById('newPayDay').value = '';
         }
 
         function deleteOption(id) {
             payDayOptions = payDayOptions.filter(o => o.id !== id);
-            localStorage.setItem('payDayOptions_v8', JSON.stringify(payDayOptions));
+            localStorage.setItem('payDayOptions_v9', JSON.stringify(payDayOptions));
             renderOptions();
         }
 
@@ -392,3 +435,4 @@
     </script>
 </body>
 </html>
+
