@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tell My Doggy - Salary V6</title>
+    <title>Tell My Doggy - Salary V7</title>
     <style>
         :root {
             --morandi-green: #A3B18A;
             --morandi-light: #B8C1B0;
             --morandi-bg: #F4F5F2;
             --text-color: #5E6B5E;
-            --morandi-red: #D4A5A5; /* 新增刪除按鈕用莫蘭迪紅 */
+            --morandi-red: #D4A5A5;
         }
 
         body {
@@ -22,7 +22,6 @@
             flex-direction: column;
             align-items: center;
             padding: 20px;
-            position: relative; /* 為彈窗準備 */
         }
 
         .container {
@@ -33,6 +32,7 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.05);
             overflow: hidden;
             margin-bottom: 20px;
+            min-height: 500px;
         }
 
         .tabs { display: flex; background: var(--morandi-light); }
@@ -44,56 +44,52 @@
 
         h2 { text-align: center; color: var(--morandi-green); margin-top: 0; font-size: 1.2rem; }
 
-        /* 月曆樣式 */
+        /* 月曆樣式修正 */
         .calendar-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .nav-btn { background: none; border: 1px solid var(--morandi-light); color: var(--morandi-green); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; }
-        .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; position: relative; }
-        .day { padding: 12px 0; font-size: 14px; border-radius: 8px; position: relative; cursor: pointer; }
-        .day.has-work::after { content: '🍡'; font-size: 10px; position: absolute; bottom: 1px; right: 1px; }
+        .nav-btn { background: none; border: 1px solid var(--morandi-light); color: var(--morandi-green); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .day { padding: 10px 0; font-size: 14px; border-radius: 8px; position: relative; cursor: pointer; min-height: 40px; display: flex; align-items: center; justify-content: center; }
+        .day.has-work::after { content: '🍡'; font-size: 10px; position: absolute; bottom: 2px; right: 2px; }
         .day:hover { background-color: var(--morandi-bg); }
+        .weekday { font-weight: bold; color: var(--morandi-light); padding-bottom: 10px; }
 
-        /* 多打工彈窗選單 */
+        /* 彈窗選單 */
         #datePopover {
             display: none; position: absolute; background: white; border-radius: 12px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1); padding: 10px; z-index: 100;
-            border: 2px solid var(--morandi-light);
+            border: 2px solid var(--morandi-light); width: 150px;
         }
         #datePopover button {
             display: block; width: 100%; background: var(--morandi-bg); border: none;
-            color: var(--morandi-green); padding: 8px 15px; text-align: center;
+            color: var(--morandi-green); padding: 8px 10px; text-align: center;
             border-radius: 6px; margin-bottom: 5px; cursor: pointer; font-size: 14px;
         }
-        #datePopover button:last-child { margin-bottom: 0; }
 
         /* 表單樣式 */
-        .input-group { margin-bottom: 15px; text-align: center; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; color: var(--morandi-green); }
         input, select {
             width: 100%; padding: 12px; border: 2px solid var(--morandi-light); border-radius: 12px;
-            color: var(--morandi-green); text-align: center; text-align-last: center;
-            font-size: 16px; background: white; outline: none; box-sizing: border-box; appearance: none;
+            color: var(--text-color); font-size: 16px; background: white; outline: none; box-sizing: border-box;
         }
-        select {
-            background-image: url('data:image/svg+xml;utf8,<svg fill="%23A3B18A" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-            background-repeat: no-repeat; background-position: calc(100% - 10px) center; padding-right: 40px;
-        }
-
-        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
-        .main-btn { flex: 1; padding: 15px; background: var(--morandi-green); color: white; border: none; border-radius: 15px; font-size: 16px; cursor: pointer; }
-        .delete-btn { flex: 0.8; padding: 15px; background: var(--morandi-red); color: white; border: none; border-radius: 15px; font-size: 16px; cursor: pointer; display: none; }
         
-        /* 統計與列表交互 */
-        .stat-card { padding: 15px; border-radius: 12px; margin-bottom: 10px; color: white; text-align: center; }
-        .filter-box { background: #f9f9f9; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #eee; }
-        .total-sum { text-align: center; padding: 15px; border-top: 2px dashed var(--morandi-light); margin-top: 10px; font-weight: bold; font-size: 18px; color: var(--morandi-green); }
-        .stat-item { font-size: 12px; opacity: 0.9; cursor: pointer; padding: 3px 0; }
-        .stat-item:hover { text-decoration: underline; }
-        .list-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; align-items: center;}
+        /* 解決寬度被壓縮問題 */
+        .flex-row { display: flex; gap: 10px; align-items: flex-end; }
+        .flex-grow { flex: 2; }
+        .flex-shrink { flex: 1; }
+
+        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+        .main-btn { width: 100%; padding: 15px; background: var(--morandi-green); color: white; border: none; border-radius: 15px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        .delete-btn { width: 100%; padding: 10px; background: white; color: var(--morandi-red); border: 1px solid var(--morandi-red); border-radius: 15px; font-size: 14px; cursor: pointer; display: none; }
+        
+        .stat-card { padding: 15px; border-radius: 12px; margin-bottom: 10px; color: white; }
+        .stat-item { font-size: 13px; margin-top: 5px; padding-left: 10px; border-left: 2px solid rgba(255,255,255,0.3); cursor: pointer; }
+        .list-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
 
-    <div class="container">
+    <div class="container" id="mainContainer">
         <div class="tabs">
             <button class="tab-btn active" onclick="showPage('page1')">打卡紀錄</button>
             <button class="tab-btn" onclick="showPage('page2')">紀錄</button>
@@ -101,23 +97,23 @@
             <button class="tab-btn" onclick="showPage('page4')">設定</button>
         </div>
 
-        <div id="page1" class="page active" style="position:relative;">
+        <div id="page1" class="page active">
             <h2>打卡紀錄</h2>
             <div class="calendar-nav">
                 <button class="nav-btn" onclick="changeMonth(-1)">❮</button>
                 <h3 id="currentMonthDisplay" style="margin:0; color:var(--morandi-green);">2026 年 3 月</h3>
                 <button class="nav-btn" onclick="changeMonth(1)">❯</button>
             </div>
-            <div class="calendar" id="calendarGrid"></div>
+            <div class="calendar-grid" id="calendarGrid"></div>
             <div id="datePopover"></div>
-            <p style="font-size: 12px; color: #999; text-align: center; margin-top: 15px;">※ 點擊有 🍡 的日期可選擇工作修改</p>
+            <p style="font-size: 12px; color: #999; text-align: center; margin-top: 20px;">※ 點擊有 🍡 的日期可選擇工作修改</p>
         </div>
 
         <div id="page2" class="page">
             <h2 id="formTitle">新增紀錄</h2>
             <div class="input-group">
                 <label>工作名稱</label>
-                <input type="text" id="workName" placeholder="例如：Eid festival 지원">
+                <input type="text" id="workName" placeholder="輸入工作名稱">
             </div>
             <div class="input-group">
                 <label>上班日期</label>
@@ -125,7 +121,7 @@
             </div>
             <div class="input-group">
                 <label>當日薪資估計</label>
-                <input type="number" id="dailyPay" placeholder="輸入金額">
+                <input type="number" id="dailyPay" placeholder="例如：1500">
             </div>
             <div class="input-group">
                 <label>領薪設定</label>
@@ -134,72 +130,69 @@
             <div class="btn-group">
                 <button class="main-btn" id="saveBtn" onclick="saveWork()">儲存上班紀錄</button>
                 <button class="delete-btn" id="deleteBtn" onclick="confirmDelete()">刪除此紀錄</button>
+                <button id="cancelEditBtn" style="display:none; background:none; border:none; color:#999; cursor:pointer;" onclick="resetForm(); showPage('page1');">取消修改</button>
             </div>
-            <button id="cancelEditBtn" style="display:none; width:100%; background:none; border:none; color:#999; margin-top:10px; cursor:pointer;" onclick="resetForm()">取消修改</button>
         </div>
 
         <div id="page3" class="page">
             <h2>薪資統計</h2>
-            <div class="filter-box">
-                <label style="margin-bottom:10px;">查詢區間</label>
-                <input type="date" id="filterStart" style="margin-bottom:5px;">
-                <input type="date" id="filterEnd">
-                <button class="main-btn" style="margin-top:10px; padding:8px; font-size:14px; background:var(--morandi-light);" onclick="renderStats()">套用篩選</button>
-            </div>
             <div id="statsList"></div>
-            <div id="totalDisplay" class="total-sum"></div>
         </div>
 
         <div id="page4" class="page">
             <h2>管理領薪日</h2>
             <div class="input-group">
                 <label>新增發薪日</label>
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <select id="newPayMonthType" style="flex:1;">
-                        <option value="當月">當月</option>
-                        <option value="下個月" selected>下個月</option>
-                        <option value="當日">當日</option>
-                    </select>
-                    <input type="number" id="newPayDay" placeholder="幾號？" style="flex:2;">
+                <div class="flex-row">
+                    <div class="flex-shrink">
+                        <select id="newPayMonthType">
+                            <option value="當月">當月</option>
+                            <option value="下個月" selected>下個月</option>
+                        </select>
+                    </div>
+                    <div class="flex-grow">
+                        <input type="number" id="newPayDay" placeholder="幾號？">
+                    </div>
                 </div>
             </div>
-            <button class="main-btn" onclick="addPayDayOption()" style="background:var(--morandi-light);">新增發薪選項</button>
-            <div id="optionsList" style="margin-top:20px;"></div>
+            <button class="main-btn" onclick="addPayDayOption()" style="background:var(--morandi-light); margin-bottom:20px;">新增選項</button>
+            <div id="optionsList"></div>
         </div>
     </div>
 
     <script>
-        let currentDate = new Date(2026, 2, 1);
-        let workRecords = JSON.parse(localStorage.getItem('workRecords_v6')) || [];
-        let payDayOptions = JSON.parse(localStorage.getItem('payDayOptions_v6')) || [
-            { id: '當日_0', monthType: '當日', day: 0, label: '當日現領' },
-            { id: '下個月_5', monthType: '下個月', day: 5, label: '下個月 5 號入帳' },
-            { id: '下個月_20', monthType: '下個月', day: 20, label: '下個月 20 號入帳' }
+        let viewDate = new Date(2026, 2, 1);
+        let workRecords = JSON.parse(localStorage.getItem('workRecords_v7')) || [];
+        let payDayOptions = JSON.parse(localStorage.getItem('payDayOptions_v7')) || [
+            { id: 'opt_1', monthType: '下個月', day: 5, label: '下個月 5 號入帳' },
+            { id: 'opt_2', monthType: '下個月', day: 10, label: '下個月 10 號入帳' }
         ];
-        let editingId = null; // 用唯一 ID 判斷是否正在修改
+        let editingId = null;
 
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
-            const targetBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick').includes(pageId));
-            if(targetBtn) targetBtn.classList.add('active');
+            document.querySelector(`button[onclick="showPage('${pageId}')"]`).classList.add('active');
             
-            // 切換頁面時隱藏月曆彈窗
             closePopover();
-
             if(pageId === 'page1') renderCalendar();
             if(pageId === 'page3') renderStats();
+            if(pageId === 'page4') renderOptions();
         }
 
-        // --- 第一頁：月曆與多打工彈窗邏輯 ---
         function renderCalendar() {
             const grid = document.getElementById('calendarGrid');
             const display = document.getElementById('currentMonthDisplay');
             grid.innerHTML = '';
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
+            
+            const year = viewDate.getFullYear();
+            const month = viewDate.getMonth();
             display.innerText = `${year} 年 ${month + 1} 月`;
+
+            ['日','一','二','三','四','五','六'].forEach(w => {
+                grid.innerHTML += `<div class="weekday">${w}</div>`;
+            });
 
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -208,73 +201,59 @@
             for (let d = 1; d <= daysInMonth; d++) {
                 const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 const hasWork = workRecords.some(r => r.date === dateKey);
-                grid.innerHTML += `<div class="day ${hasWork ? 'has-work' : ''}" onclick="clickDate(event, '${dateKey}')">${d}</div>`;
+                grid.innerHTML += `<div class="day ${hasWork ? 'has-work' : ''}" onclick="handleDateClick(event, '${dateKey}')">${d}</div>`;
             }
         }
 
-        function clickDate(event, dateStr) {
-            event.stopPropagation(); // 防止冒泡
-            const popover = document.getElementById('datePopover');
-            const recordsOnDate = workRecords.filter(r => r.date === dateStr);
-
-            if (recordsOnDate.length > 1) {
-                // 如果有多筆，顯示選單
-                popover.innerHTML = `<p style="font-size:12px; color:#999; margin:0 0 8px 0; text-align:center;">選擇修改項目：</p>`;
-                recordsOnDate.forEach(r => {
-                    popover.innerHTML += `<button onclick="prepareEdit('${r.id}')">${r.name}</button>`;
-                });
-                popover.innerHTML += `<button style="background:#eee; color:#999;" onclick="closePopover()">取消</button>`;
-                
-                // 定位彈窗 (在點擊日期下方)
-                const rect = event.target.getBoundingClientRect();
-                const containerRect = document.querySelector('.container').getBoundingClientRect();
-                popover.style.left = `${rect.left - containerRect.left + rect.width / 2 - 50}px`;
-                popover.style.top = `${rect.bottom - containerRect.top + 10}px`;
-                popover.style.display = 'block';
-            } else if (recordsOnDate.length === 1) {
-                // 如果只有一筆，直接進入修改
-                prepareEdit(recordsOnDate[0].id);
+        function handleDateClick(event, dateStr) {
+            const records = workRecords.filter(r => r.date === dateStr);
+            if (records.length > 1) {
+                showPopover(event, records);
+            } else if (records.length === 1) {
+                startEdit(records[0].id);
             } else {
-                // 如果沒紀錄，直接帶入日期新增
                 resetForm();
                 document.getElementById('workDate').value = dateStr;
                 showPage('page2');
             }
         }
 
-        function closePopover() {
+        function showPopover(event, records) {
             const popover = document.getElementById('datePopover');
-            if(popover) popover.style.display = 'none';
+            popover.innerHTML = '<p style="margin:5px 0; font-size:12px; text-align:center;">選擇工作：</p>';
+            records.forEach(r => {
+                const btn = document.createElement('button');
+                btn.innerText = r.name;
+                btn.onclick = () => { startEdit(r.id); closePopover(); };
+                popover.appendChild(btn);
+            });
+            
+            const rect = event.target.getBoundingClientRect();
+            const containerRect = document.getElementById('mainContainer').getBoundingClientRect();
+            popover.style.left = `${rect.left - containerRect.left}px`;
+            popover.style.top = `${rect.bottom - containerRect.top + 5}px`;
+            popover.style.display = 'block';
+            event.stopPropagation();
         }
 
-        // 點擊容器空白處關閉彈窗
-        document.querySelector('.container').addEventListener('click', closePopover);
-        document.getElementById('datePopover').addEventListener('click', (e) => e.stopPropagation());
+        function closePopover() { document.getElementById('datePopover').style.display = 'none'; }
+        document.addEventListener('click', closePopover);
 
-        // --- 準備修改邏輯 (共用) ---
-        function prepareEdit(recordId) {
-            const record = workRecords.find(r => r.id === recordId);
-            if (record) {
-                closePopover();
-                editingId = recordId; // 紀錄正在修改的 ID
-                document.getElementById('formTitle').innerText = "修改紀錄";
-                document.getElementById('workName').value = record.name;
-                document.getElementById('workDate').value = record.date;
-                document.getElementById('dailyPay').value = record.pay;
-                document.getElementById('payDaySelect').value = record.payOptionId;
-                document.getElementById('saveBtn').innerText = "確認修改";
-                document.getElementById('deleteBtn').style.display = "block"; // 顯示刪除按鈕
-                document.getElementById('cancelEditBtn').style.display = "block";
-                showPage('page2');
-            }
+        function startEdit(id) {
+            const r = workRecords.find(item => item.id === id);
+            if (!r) return;
+            editingId = id;
+            document.getElementById('formTitle').innerText = "修改紀錄";
+            document.getElementById('workName').value = r.name;
+            document.getElementById('workDate').value = r.date;
+            document.getElementById('dailyPay').value = r.pay;
+            document.getElementById('payDaySelect').value = r.payOptionId;
+            document.getElementById('saveBtn').innerText = "確認修改";
+            document.getElementById('deleteBtn').style.display = "block";
+            document.getElementById('cancelEditBtn').style.display = "block";
+            showPage('page2');
         }
 
-        function changeMonth(step) {
-            currentDate.setMonth(currentDate.getMonth() + step);
-            renderCalendar();
-        }
-
-        // --- 第二頁：儲存/修改/刪除邏輯 ---
         function resetForm() {
             editingId = null;
             document.getElementById('formTitle').innerText = "新增紀錄";
@@ -287,135 +266,94 @@
         }
 
         function saveWork() {
-            const name = document.getElementById('workName').value || "未命名工作";
-            const dateInput = document.getElementById('workDate').value;
-            const pay = parseFloat(document.getElementById('dailyPay').value);
-            const payOptionId = document.getElementById('payDaySelect').value;
-            if (!dateInput || isNaN(pay)) return alert('請填寫完整資訊');
-
-            const payOption = payDayOptions.find(opt => opt.id === payOptionId);
-            const [y, m, d] = dateInput.split('-').map(Number);
-            let pYear = y, pMonth = m - 1, pDay = d;
-
-            if (payOption.monthType === '當月') pDay = payOption.day;
-            else if (payOption.monthType === '下個月') { pMonth += 1; pDay = payOption.day; }
+            const name = document.getElementById('workName').value || "未命名";
+            const date = document.getElementById('workDate').value;
+            const pay = parseInt(document.getElementById('dailyPay').value);
+            const optId = document.getElementById('payDaySelect').value;
             
-            const finalPayDate = new Date(pYear, pMonth, pDay);
-            const actualPayDateStr = `${finalPayDate.getFullYear()}-${String(finalPayDate.getMonth()+1).padStart(2,'0')}-${String(finalPayDate.getDate()).padStart(2,'0')}`;
+            if (!date || isNaN(pay)) return alert("請填寫日期與金額");
 
-            // 如果是修改，刪除舊紀錄 (用 ID 匹配)
-            if (editingId) {
-                workRecords = workRecords.filter(r => r.id !== editingId);
-            }
+            const opt = payDayOptions.find(o => o.id === optId);
+            const [y, m, d] = date.split('-').map(Number);
+            let pDate = new Date(y, m-1, d);
+            if(opt.monthType === '下個月') pDate.setMonth(pDate.getMonth() + 1);
+            pDate.setDate(opt.day);
+            const actualPayDate = pDate.toISOString().split('T')[0];
 
-            // 新增紀錄 (生成唯一 ID)
-            const newRecordId = editingId || `work_${Date.now()}`;
-            workRecords.push({ id: newRecordId, name, date: dateInput, pay, payOptionId, actualPayDate: actualPayDateStr });
-            localStorage.setItem('workRecords_v6', JSON.stringify(workRecords));
-            alert(editingId ? '修改成功！' : '儲存成功！');
+            if (editingId) workRecords = workRecords.filter(r => r.id !== editingId);
+            
+            workRecords.push({ id: editingId || 'id_' + Date.now(), name, date, pay, payOptionId: optId, actualPayDate });
+            localStorage.setItem('workRecords_v7', JSON.stringify(workRecords));
             resetForm();
             showPage('page1');
         }
 
-        // --- 新增刪除邏輯 ---
         function confirmDelete() {
-            if(!editingId) return;
-            const record = workRecords.find(r => r.id === editingId);
-            if (record && confirm(`確定要刪除「${record.date} ${record.name}」的紀錄嗎？`)) {
+            if(confirm("確定要刪除這筆紀錄嗎？")) {
                 workRecords = workRecords.filter(r => r.id !== editingId);
-                localStorage.setItem('workRecords_v6', JSON.stringify(workRecords));
-                alert('已刪除');
+                localStorage.setItem('workRecords_v7', JSON.stringify(workRecords));
                 resetForm();
                 showPage('page1');
             }
         }
 
-        // --- 第三頁：統計與交互邏輯 ---
         function renderStats() {
-            const start = document.getElementById('filterStart').value;
-            const end = document.getElementById('filterEnd').value;
-            const container = document.getElementById('statsList');
-            const totalBox = document.getElementById('totalDisplay');
-            container.innerHTML = '';
-            
-            let filtered = workRecords;
-            if (start && end) {
-                filtered = workRecords.filter(r => r.actualPayDate >= start && r.actualPayDate <= end);
-            }
-
-            if (filtered.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#ccc;">區間內無紀錄</p>';
-                totalBox.innerText = '區間加總：$0';
-                return;
-            }
-
-            const grouped = filtered.reduce((acc, r) => {
-                if (!acc[r.actualPayDate]) acc[r.actualPayDate] = { total: 0, items: [] };
+            const list = document.getElementById('statsList');
+            list.innerHTML = '';
+            const grouped = workRecords.reduce((acc, r) => {
+                acc[r.actualPayDate] = acc[r.actualPayDate] || { total: 0, items: [] };
                 acc[r.actualPayDate].total += r.pay;
                 acc[r.actualPayDate].items.push(r);
                 return acc;
             }, {});
 
-            const sortedDates = Object.keys(grouped).sort();
-            let grandTotal = 0;
-            const colors = ['#A3B18A', '#95A3B3', '#8DA994', '#B8C1B0'];
-
-            sortedDates.forEach((dateStr, index) => {
-                const [y, m, d] = dateStr.split('-');
-                const total = grouped[dateStr].total;
-                grandTotal += total;
-                
-                // 為打工項目增加點擊交互
-                let itemsHtml = grouped[dateStr].items.map(item => 
-                    `<div class="stat-item" onclick="prepareEdit('${item.id}')">├ ${item.name}: $${item.pay}</div>`
-                ).join('');
-
-                container.innerHTML += `
-                    <div class="stat-card" style="background:${colors[index % colors.length]}">
-                        <div style="font-size:14px; font-weight:bold;">${y}年${parseInt(m)}月${parseInt(d)}日 領取</div>
-                        <div style="font-size:24px; font-weight:bold;">$${total.toLocaleString()}</div>
-                        ${itemsHtml}
-                    </div>
-                `;
+            Object.keys(grouped).sort().forEach(date => {
+                const card = document.createElement('div');
+                card.className = 'stat-card';
+                card.style.backgroundColor = '#A3B18A';
+                card.innerHTML = `<div style="font-weight:bold;">${date} 預計領取</div><div style="font-size:24px;">$${grouped[date].total}</div>`;
+                grouped[date].items.forEach(item => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'stat-item';
+                    itemDiv.innerText = `└ ${item.name}: $${item.pay}`;
+                    itemDiv.onclick = () => startEdit(item.id);
+                    card.appendChild(itemDiv);
+                });
+                list.appendChild(card);
             });
-
-            totalBox.innerHTML = `<span style="font-size:14px; color:#999;">區間總計金額</span><br>$${grandTotal.toLocaleString()}`;
         }
 
-        // --- 第四頁：設定 (維持，修正視覺) ---
-        function updatePayDayUI() {
+        function renderOptions() {
             const select = document.getElementById('payDaySelect');
             const list = document.getElementById('optionsList');
             select.innerHTML = ''; list.innerHTML = '';
-            payDayOptions.forEach(opt => {
-                select.innerHTML += `<option value="${opt.id}">${opt.label}</option>`;
-                list.innerHTML += `<div class="list-item"><span>${opt.label}</span><span style="color:#ccc; cursor:pointer;" onclick="deleteOption('${opt.id}')">✕</span></div>`;
+            payDayOptions.forEach(o => {
+                select.innerHTML += `<option value="${o.id}">${o.label}</option>`;
+                list.innerHTML += `<div class="list-item"><span>${o.label}</span><span style="color:#D4A5A5; cursor:pointer;" onclick="deleteOption('${o.id}')">✕</span></div>`;
             });
         }
 
         function addPayDayOption() {
-            const monthType = document.getElementById('newPayMonthType').value;
-            let day = parseInt(document.getElementById('newPayDay').value);
-            let label = (monthType === '當日') ? "當日現領" : `${monthType} ${day} 號入帳`;
-            let id = `${monthType}_${day || 0}`;
-            if (monthType !== '當日' && (!day || day < 1 || day > 31)) return alert('日期錯誤');
-            payDayOptions.push({ id, monthType, day: day || 0, label });
-            localStorage.setItem('payDayOptions_v6', JSON.stringify(payDayOptions));
-            updatePayDayUI();
-            document.getElementById('newPayDay').value = ''; // 清空日期輸入
+            const type = document.getElementById('newPayMonthType').value;
+            const day = document.getElementById('newPayDay').value;
+            if (!day) return alert("請輸入日期");
+            payDayOptions.push({ id: 'opt_' + Date.now(), monthType: type, day: parseInt(day), label: `${type} ${day} 號入帳` });
+            localStorage.setItem('payDayOptions_v7', JSON.stringify(payDayOptions));
+            renderOptions();
         }
 
         function deleteOption(id) {
-            payDayOptions = payDayOptions.filter(opt => opt.id !== id);
-            localStorage.setItem('payDayOptions_v6', JSON.stringify(payDayOptions));
-            updatePayDayUI();
+            payDayOptions = payDayOptions.filter(o => o.id !== id);
+            localStorage.setItem('payDayOptions_v7', JSON.stringify(payDayOptions));
+            renderOptions();
         }
 
-        // 初始化
-        updatePayDayUI();
+        function changeMonth(n) { viewDate.setMonth(viewDate.getMonth() + n); renderCalendar(); }
+
+        // 啟動
         renderCalendar();
+        renderOptions();
         resetForm();
-    }
     </script>
 </body>
 </html>
