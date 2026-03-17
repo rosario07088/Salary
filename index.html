@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tell My Doggy - Salary V11</title>
+    <title>Tell My Doggy - Salary V12</title>
     <style>
         :root {
             --morandi-green: #A3B18A;
@@ -50,21 +50,9 @@
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
         .day { padding: 10px 0; font-size: 14px; border-radius: 8px; position: relative; cursor: pointer; min-height: 40px; display: flex; align-items: center; justify-content: center; }
         .day.has-work::after { content: '🍡'; font-size: 10px; position: absolute; bottom: 2px; right: 2px; }
-        .day:hover { background-color: var(--morandi-bg); }
         .weekday { font-weight: bold; color: var(--morandi-light); padding-bottom: 10px; }
 
-        #datePopover {
-            display: none; position: absolute; background: white; border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1); padding: 10px; z-index: 100;
-            border: 2px solid var(--morandi-light); width: 150px;
-        }
-        #datePopover button {
-            display: block; width: 100%; background: var(--morandi-bg); border: none;
-            color: var(--morandi-green); padding: 8px 10px; text-align: center;
-            border-radius: 6px; margin-bottom: 5px; cursor: pointer; font-size: 14px;
-        }
-
-        /* 欄位對齊修正 */
+        /* 對齊修正 */
         .input-group { margin-bottom: 15px; width: 100%; display: flex; flex-direction: column; align-items: center; }
         label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 14px; color: var(--morandi-green); text-align: center; }
         
@@ -85,23 +73,24 @@
             -webkit-appearance: none;
         }
 
-        input[type="date"] { min-height: 48px; display: block; }
+        input[type="date"] { min-height: 48px; }
 
-        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-        .main-btn { width: 100%; padding: 15px; background: var(--morandi-green); color: white; border: none; border-radius: 15px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        .main-btn { width: 100%; padding: 15px; background: var(--morandi-green); color: white; border: none; border-radius: 15px; font-size: 16px; cursor: pointer; font-weight: bold; margin-top: 10px; }
         .secondary-btn { width: 100%; padding: 10px; background: white; color: var(--morandi-light); border: 1px solid var(--morandi-light); border-radius: 15px; font-size: 14px; cursor: pointer; }
-        .delete-btn { width: 100%; padding: 10px; background: white; color: var(--morandi-red); border: 1px solid var(--morandi-red); border-radius: 15px; font-size: 14px; cursor: pointer; margin-top: 5px; }
+        .delete-btn { width: 100%; padding: 10px; background: white; color: var(--morandi-red); border: 1px solid var(--morandi-red); border-radius: 15px; font-size: 14px; cursor: pointer; margin-top: 10px; }
 
-        /* 統計頁樣式 */
+        /* 統計卡片 */
         .filter-box { background: var(--morandi-bg); padding: 15px; border-radius: 15px; margin-bottom: 20px; }
-        .filter-box label { text-align: left; font-size: 12px; margin-bottom: 2px; color: var(--morandi-light); }
-        .filter-box input { padding: 8px; font-size: 14px; margin-bottom: 10px; border-radius: 10px; width: 100%; }
-
         .stat-card { padding: 15px; border-radius: 15px; margin-bottom: 12px; color: white; background-color: var(--morandi-green); }
-        .stat-item { font-size: 13px; margin-top: 5px; padding: 10px; background: rgba(255,255,255,0.15); border-radius: 8px; cursor: pointer; }
+        .stat-item { font-size: 13px; margin-top: 8px; padding: 10px; background: rgba(255,255,255,0.2); border-radius: 10px; cursor: pointer; }
         .total-summary { text-align: center; border-top: 1px dashed var(--morandi-light); padding-top: 15px; margin-top: 15px; }
 
-        .list-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; }
+        #datePopover {
+            display: none; position: absolute; background: white; border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); padding: 10px; z-index: 100;
+            border: 2px solid var(--morandi-light); width: 150px;
+        }
+        #datePopover button { display: block; width: 100%; background: var(--morandi-bg); border: none; padding: 8px; margin-bottom: 5px; border-radius: 6px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -118,12 +107,11 @@
             <h2>打卡紀錄</h2>
             <div class="calendar-nav">
                 <button class="nav-btn" onclick="changeMonth(-1)">❮</button>
-                <h3 id="currentMonthDisplay" style="margin:0; color:var(--morandi-green);">2026 年 3 月</h3>
+                <h3 id="currentMonthDisplay">2026 年 3 月</h3>
                 <button class="nav-btn" onclick="changeMonth(1)">❯</button>
             </div>
             <div class="calendar-grid" id="calendarGrid"></div>
             <div id="datePopover"></div>
-            <p style="font-size: 12px; color: #999; text-align: center; margin-top: 20px;">※ 點擊有 🍡 的日期可選擇工作修改</p>
         </div>
 
         <div id="page2" class="page">
@@ -138,17 +126,15 @@
             </div>
             <div class="input-group">
                 <label>當日薪資估計</label>
-                <input type="number" id="dailyPay" placeholder="輸入薪水">
+                <input type="number" id="dailyPay" placeholder="輸入金額">
             </div>
             <div class="input-group">
                 <label>領薪設定</label>
                 <select id="payDaySelect"></select>
             </div>
-            <div class="btn-group">
-                <button class="main-btn" id="saveBtn" onclick="saveWork()">儲存上班紀錄</button>
-                <button class="delete-btn" id="deleteBtn" style="display:none;" onclick="confirmDelete()">刪除此紀錄</button>
-                <button id="cancelEditBtn" style="display:none; background:none; border:none; color:#999; cursor:pointer; margin-top:10px;" onclick="resetForm(); showPage('page1');">取消修改</button>
-            </div>
+            <button class="main-btn" id="saveBtn" onclick="saveWork()">儲存紀錄</button>
+            <button class="delete-btn" id="deleteBtn" style="display:none;" onclick="confirmDelete()">刪除此紀錄</button>
+            <button id="cancelEditBtn" style="display:none; width:100%; background:none; border:none; color:#999; margin-top:10px;" onclick="resetForm(); showPage('page1');">取消修改</button>
         </div>
 
         <div id="page3" class="page">
@@ -179,44 +165,64 @@
                     <input type="number" id="newPayDay" placeholder="幾號？" style="flex:1;">
                 </div>
             </div>
-            <button class="main-btn" onclick="addPayDayOption()" style="background:var(--morandi-light); margin-bottom:20px;">新增選項</button>
-            <div id="optionsList"></div>
+            <button class="main-btn" onclick="addPayDayOption()" style="background:var(--morandi-light);">新增選項</button>
+            <div id="optionsList" style="margin-top:20px;"></div>
         </div>
     </div>
 
     <script>
         let viewDate = new Date(2026, 2, 1);
-        let workRecords = JSON.parse(localStorage.getItem('workRecords_v11')) || [];
-        let payDayOptions = JSON.parse(localStorage.getItem('payDayOptions_v11')) || [
+        let workRecords = JSON.parse(localStorage.getItem('workRecords_v12')) || [];
+        let payDayOptions = JSON.parse(localStorage.getItem('payDayOptions_v12')) || [
             { id: 'opt_cash', monthType: '當月', day: 0, label: '當日現領' },
-            { id: 'opt_1', monthType: '下個月', day: 5, label: '下個月 5 號入帳' }
+            { id: 'opt_19', monthType: '當月', day: 19, label: '當月 19 號入帳' }
         ];
         let editingId = null;
+
+        // 強制校正舊數據
+        function autoFixRecords() {
+            let changed = false;
+            workRecords.forEach(r => {
+                const opt = payDayOptions.find(o => o.id === r.payOptionId);
+                if (opt) {
+                    const [y, m, d] = r.date.split('-').map(Number);
+                    let pDate = new Date(y, m-1, d);
+                    if (opt.id === 'opt_cash') {
+                        // Keep current
+                    } else {
+                        if (opt.monthType === '下個月') pDate.setMonth(pDate.getMonth() + 1);
+                        pDate.setDate(opt.day);
+                    }
+                    const newPayDate = pDate.toISOString().split('T')[0];
+                    if (r.actualPayDate !== newPayDate) {
+                        r.actualPayDate = newPayDate;
+                        changed = true;
+                    }
+                }
+            });
+            if (changed) localStorage.setItem('workRecords_v12', JSON.stringify(workRecords));
+        }
 
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             document.querySelector(`button[onclick="showPage('${pageId}')"]`).classList.add('active');
-            closePopover();
             if(pageId === 'page1') renderCalendar();
-            if(pageId === 'page3') renderStats();
+            if(pageId === 'page3') { autoFixRecords(); renderStats(); }
             if(pageId === 'page4') renderOptions();
         }
 
         function renderCalendar() {
             const grid = document.getElementById('calendarGrid');
-            const display = document.getElementById('currentMonthDisplay');
             grid.innerHTML = '';
-            const year = viewDate.getFullYear();
-            const month = viewDate.getMonth();
-            display.innerText = `${year} 年 ${month + 1} 月`;
+            document.getElementById('currentMonthDisplay').innerText = `${viewDate.getFullYear()} 年 ${viewDate.getMonth() + 1} 月`;
             ['日','一','二','三','四','五','六'].forEach(w => grid.innerHTML += `<div class="weekday">${w}</div>`);
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const firstDay = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
+            const daysInMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
             for (let i = 0; i < firstDay; i++) grid.innerHTML += '<div></div>';
             for (let d = 1; d <= daysInMonth; d++) {
-                const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const dateKey = `${viewDate.getFullYear()}-${String(viewDate.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 const hasWork = workRecords.some(r => r.date === dateKey);
                 grid.innerHTML += `<div class="day ${hasWork ? 'has-work' : ''}" onclick="handleDateClick(event, '${dateKey}')">${d}</div>`;
             }
@@ -231,48 +237,17 @@
 
         function showPopover(event, records) {
             const popover = document.getElementById('datePopover');
-            popover.innerHTML = '<p style="margin:5px 0; font-size:12px; text-align:center;">選擇工作：</p>';
+            popover.innerHTML = '';
             records.forEach(r => {
                 const btn = document.createElement('button');
                 btn.innerText = r.name;
-                btn.onclick = () => { startEdit(r.id); closePopover(); };
+                btn.onclick = () => { startEdit(r.id); popover.style.display='none'; };
                 popover.appendChild(btn);
             });
-            const rect = event.target.getBoundingClientRect();
-            const containerRect = document.getElementById('mainContainer').getBoundingClientRect();
-            popover.style.left = `${rect.left - containerRect.left}px`;
-            popover.style.top = `${rect.bottom - containerRect.top + 5}px`;
+            popover.style.left = event.pageX + 'px';
+            popover.style.top = event.pageY + 'px';
             popover.style.display = 'block';
             event.stopPropagation();
-        }
-
-        function closePopover() { document.getElementById('datePopover').style.display = 'none'; }
-        document.addEventListener('click', closePopover);
-
-        function startEdit(id) {
-            const r = workRecords.find(item => item.id === id);
-            if (!r) return;
-            editingId = id;
-            document.getElementById('formTitle').innerText = "修改紀錄";
-            document.getElementById('workName').value = r.name;
-            document.getElementById('workDate').value = r.date;
-            document.getElementById('dailyPay').value = r.pay;
-            document.getElementById('payDaySelect').value = r.payOptionId;
-            document.getElementById('saveBtn').innerText = "確認修改";
-            document.getElementById('deleteBtn').style.display = "block";
-            document.getElementById('cancelEditBtn').style.display = "block";
-            showPage('page2');
-        }
-
-        function resetForm() {
-            editingId = null;
-            document.getElementById('formTitle').innerText = "新增紀錄";
-            document.getElementById('workName').value = "";
-            document.getElementById('workDate').valueAsDate = new Date();
-            document.getElementById('dailyPay').value = "";
-            document.getElementById('saveBtn').innerText = "儲存上班紀錄";
-            document.getElementById('deleteBtn').style.display = "none";
-            document.getElementById('cancelEditBtn').style.display = "none";
         }
 
         function saveWork() {
@@ -280,52 +255,33 @@
             const dateStr = document.getElementById('workDate').value;
             const pay = parseInt(document.getElementById('dailyPay').value);
             const optId = document.getElementById('payDaySelect').value;
-            if (!dateStr || isNaN(pay)) return alert("請填寫完整資訊");
+            if (!dateStr || isNaN(pay)) return alert("請輸入完整資訊");
 
             const opt = payDayOptions.find(o => o.id === optId);
             const [y, m, d] = dateStr.split('-').map(Number);
             let pDate = new Date(y, m-1, d);
             
-            // 關鍵修正：判斷發薪日邏輯
-            if(optId === 'opt_cash') {
-                // 當日現領 = 上班日
-            } else {
-                // 如果是指定日期（不管是當月還是下個月），都強制設為該號碼
-                if(opt.monthType === '下個月') {
-                    pDate.setMonth(pDate.getMonth() + 1);
-                }
+            if(optId !== 'opt_cash') {
+                if(opt.monthType === '下個月') pDate.setMonth(pDate.getMonth() + 1);
                 pDate.setDate(opt.day);
             }
-            
             const actualPayDate = pDate.toISOString().split('T')[0];
 
             if (editingId) workRecords = workRecords.filter(r => r.id !== editingId);
             workRecords.push({ id: editingId || 'id_' + Date.now(), name, date: dateStr, pay, payOptionId: optId, actualPayDate });
-            localStorage.setItem('workRecords_v11', JSON.stringify(workRecords));
+            localStorage.setItem('workRecords_v12', JSON.stringify(workRecords));
             resetForm();
             showPage('page1');
-        }
-
-        function confirmDelete() {
-            if(confirm("確定要刪除這筆紀錄嗎？")) {
-                workRecords = workRecords.filter(r => r.id !== editingId);
-                localStorage.setItem('workRecords_v11', JSON.stringify(workRecords));
-                resetForm();
-                showPage('page1');
-            }
         }
 
         function renderStats() {
             const list = document.getElementById('statsList');
             const summary = document.getElementById('totalSummary');
+            list.innerHTML = '';
+            let filtered = workRecords;
             const start = document.getElementById('filterStart').value;
             const end = document.getElementById('filterEnd').value;
-            list.innerHTML = '';
-            
-            let filtered = workRecords;
-            if (start && end) {
-                filtered = workRecords.filter(r => r.actualPayDate >= start && r.actualPayDate <= end);
-            }
+            if (start && end) filtered = workRecords.filter(r => r.actualPayDate >= start && r.actualPayDate <= end);
 
             const grouped = filtered.reduce((acc, r) => {
                 acc[r.actualPayDate] = acc[r.actualPayDate] || { total: 0, items: [] };
@@ -335,27 +291,18 @@
             }, {});
 
             let grandTotal = 0;
-            const sortedDates = Object.keys(grouped).sort();
-            
-            sortedDates.forEach(payDate => {
+            Object.keys(grouped).sort().forEach(payDate => {
                 grandTotal += grouped[payDate].total;
                 const card = document.createElement('div');
                 card.className = 'stat-card';
-                card.innerHTML = `<div style="font-size:12px; opacity:0.8;">預計領薪日</div><div style="font-weight:bold; font-size:18px;">${payDate}</div><div style="font-size:26px; font-weight:bold; margin-top:5px;">$${grouped[payDate].total.toLocaleString()}</div>`;
-                
+                card.innerHTML = `<div style="font-size:12px;opacity:0.9;">預計領薪日</div><div style="font-size:20px;font-weight:bold;">${payDate}</div><div style="font-size:24px;margin-top:5px;">$${grouped[payDate].total.toLocaleString()}</div>`;
                 grouped[payDate].items.forEach(item => {
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'stat-item';
-                    itemDiv.innerHTML = `<div style="display:flex; justify-content:space-between;"><span>${item.name}</span><span>$${item.pay.toLocaleString()}</span></div><div style="font-size:11px; opacity:0.8; margin-top:2px;">📅 上班日: ${item.date}</div>`;
-                    itemDiv.onclick = () => startEdit(item.id);
-                    card.appendChild(itemDiv);
+                    card.innerHTML += `<div class="stat-item" onclick="startEdit('${item.id}')"><div>${item.name} ($${item.pay.toLocaleString()})</div><div style="font-size:11px;opacity:0.8;">📅 上班日: ${item.date}</div></div>`;
                 });
                 list.appendChild(card);
             });
-            summary.innerHTML = `<p style="color:var(--morandi-light);">期間總金額</p><h2 style="font-size:30px; margin:0; color:var(--morandi-green);">$${grandTotal.toLocaleString()}</h2>`;
+            summary.innerHTML = `<h3>期間總計：$${grandTotal.toLocaleString()}</h3>`;
         }
-
-        function clearFilter() { document.getElementById('filterStart').value = ''; document.getElementById('filterEnd').value = ''; renderStats(); }
 
         function renderOptions() {
             const select = document.getElementById('payDaySelect');
@@ -363,31 +310,56 @@
             select.innerHTML = ''; list.innerHTML = '';
             payDayOptions.forEach(o => {
                 select.innerHTML += `<option value="${o.id}">${o.label}</option>`;
-                list.innerHTML += `<div class="list-item"><span>${o.label}</span>${o.id!=='opt_cash' ? `<span style="color:#D4A5A5; cursor:pointer;" onclick="deleteOption('${o.id}')">✕</span>` : ''}</div>`;
+                list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee;"><span>${o.label}</span>${o.id!=='opt_cash' ? `<span style="color:red;" onclick="deleteOption('${o.id}')">✕</span>` : ''}</div>`;
             });
         }
 
         function addPayDayOption() {
-            const type = document.getElementById('newPayMonthType').value;
             const day = document.getElementById('newPayDay').value;
-            if (!day) return alert("請輸入日期");
+            const type = document.getElementById('newPayMonthType').value;
+            if (!day) return;
             payDayOptions.push({ id: 'opt_' + Date.now(), monthType: type, day: parseInt(day), label: `${type} ${day} 號入帳` });
-            localStorage.setItem('payDayOptions_v11', JSON.stringify(payDayOptions));
+            localStorage.setItem('payDayOptions_v12', JSON.stringify(payDayOptions));
             renderOptions();
-            document.getElementById('newPayDay').value = '';
         }
 
         function deleteOption(id) {
             payDayOptions = payDayOptions.filter(o => o.id !== id);
-            localStorage.setItem('payDayOptions_v11', JSON.stringify(payDayOptions));
+            localStorage.setItem('payDayOptions_v12', JSON.stringify(payDayOptions));
             renderOptions();
         }
 
-        function changeMonth(n) { viewDate.setMonth(viewDate.getMonth() + n); renderCalendar(); }
+        function startEdit(id) {
+            const r = workRecords.find(i => i.id === id);
+            editingId = id;
+            document.getElementById('formTitle').innerText = "修改紀錄";
+            document.getElementById('workName').value = r.name;
+            document.getElementById('workDate').value = r.date;
+            document.getElementById('dailyPay').value = r.pay;
+            document.getElementById('payDaySelect').value = r.payOptionId;
+            document.getElementById('deleteBtn').style.display = 'block';
+            document.getElementById('cancelEditBtn').style.display = 'block';
+            showPage('page2');
+        }
 
-        renderCalendar();
-        renderOptions();
-        resetForm();
+        function resetForm() {
+            editingId = null;
+            document.getElementById('formTitle').innerText = "新增紀錄";
+            document.getElementById('workName').value = '';
+            document.getElementById('workDate').valueAsDate = new Date();
+            document.getElementById('dailyPay').value = '';
+            document.getElementById('deleteBtn').style.display = 'none';
+            document.getElementById('cancelEditBtn').style.display = 'none';
+        }
+
+        function confirmDelete() {
+            if(confirm("要刪除嗎？")) { workRecords = workRecords.filter(r => r.id !== editingId); localStorage.setItem('workRecords_v12', JSON.stringify(workRecords)); showPage('page1'); }
+        }
+
+        function changeMonth(n) { viewDate.setMonth(viewDate.getMonth() + n); renderCalendar(); }
+        function clearFilter() { document.getElementById('filterStart').value = ''; document.getElementById('filterEnd').value = ''; renderStats(); }
+
+        renderCalendar(); renderOptions(); autoFixRecords();
     </script>
 </body>
 </html>
