@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tell My Doggy - Salary V10</title>
+    <title>Tell My Doggy - Salary V11</title>
     <style>
         :root {
             --morandi-green: #A3B18A;
@@ -92,14 +92,13 @@
         .secondary-btn { width: 100%; padding: 10px; background: white; color: var(--morandi-light); border: 1px solid var(--morandi-light); border-radius: 15px; font-size: 14px; cursor: pointer; }
         .delete-btn { width: 100%; padding: 10px; background: white; color: var(--morandi-red); border: 1px solid var(--morandi-red); border-radius: 15px; font-size: 14px; cursor: pointer; margin-top: 5px; }
 
-        /* 統計頁樣式優化 */
+        /* 統計頁樣式 */
         .filter-box { background: var(--morandi-bg); padding: 15px; border-radius: 15px; margin-bottom: 20px; }
         .filter-box label { text-align: left; font-size: 12px; margin-bottom: 2px; color: var(--morandi-light); }
         .filter-box input { padding: 8px; font-size: 14px; margin-bottom: 10px; border-radius: 10px; width: 100%; }
 
         .stat-card { padding: 15px; border-radius: 15px; margin-bottom: 12px; color: white; background-color: var(--morandi-green); }
-        .stat-item { font-size: 13px; margin-top: 5px; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 8px; cursor: pointer; }
-        .stat-item:hover { background: rgba(255,255,255,0.2); }
+        .stat-item { font-size: 13px; margin-top: 5px; padding: 10px; background: rgba(255,255,255,0.15); border-radius: 8px; cursor: pointer; }
         .total-summary { text-align: center; border-top: 1px dashed var(--morandi-light); padding-top: 15px; margin-top: 15px; }
 
         .list-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; }
@@ -131,7 +130,7 @@
             <h2 id="formTitle">新增紀錄</h2>
             <div class="input-group">
                 <label>工作名稱</label>
-                <input type="text" id="workName" placeholder="例如：酷澎">
+                <input type="text" id="workName" placeholder="沙發馬鈴薯">
             </div>
             <div class="input-group">
                 <label>上班日期</label>
@@ -175,7 +174,7 @@
                 <div style="display:flex; gap:10px; width:100%;">
                     <select id="newPayMonthType" style="flex:1;">
                         <option value="當月">當月</option>
-                        <option value="下個月">下個月</option>
+                        <option value="下個月" selected>下個月</option>
                     </select>
                     <input type="number" id="newPayDay" placeholder="幾號？" style="flex:1;">
                 </div>
@@ -187,8 +186,8 @@
 
     <script>
         let viewDate = new Date(2026, 2, 1);
-        let workRecords = JSON.parse(localStorage.getItem('workRecords_v10')) || [];
-        let payDayOptions = JSON.parse(localStorage.getItem('payDayOptions_v10')) || [
+        let workRecords = JSON.parse(localStorage.getItem('workRecords_v11')) || [];
+        let payDayOptions = JSON.parse(localStorage.getItem('payDayOptions_v11')) || [
             { id: 'opt_cash', monthType: '當月', day: 0, label: '當日現領' },
             { id: 'opt_1', monthType: '下個月', day: 5, label: '下個月 5 號入帳' }
         ];
@@ -277,25 +276,32 @@
         }
 
         function saveWork() {
-            const name = document.getElementById('workName').value || "未命名";
-            const date = document.getElementById('workDate').value;
+            const name = document.getElementById('workName').value || "沙發馬鈴薯";
+            const dateStr = document.getElementById('workDate').value;
             const pay = parseInt(document.getElementById('dailyPay').value);
             const optId = document.getElementById('payDaySelect').value;
-            if (!date || isNaN(pay)) return alert("請填寫完整資訊");
+            if (!dateStr || isNaN(pay)) return alert("請填寫完整資訊");
 
             const opt = payDayOptions.find(o => o.id === optId);
-            const [y, m, d] = date.split('-').map(Number);
+            const [y, m, d] = dateStr.split('-').map(Number);
             let pDate = new Date(y, m-1, d);
             
-            if(optId !== 'opt_cash') {
-                if(opt.monthType === '下個月') pDate.setMonth(pDate.getMonth() + 1);
+            // 關鍵修正：判斷發薪日邏輯
+            if(optId === 'opt_cash') {
+                // 當日現領 = 上班日
+            } else {
+                // 如果是指定日期（不管是當月還是下個月），都強制設為該號碼
+                if(opt.monthType === '下個月') {
+                    pDate.setMonth(pDate.getMonth() + 1);
+                }
                 pDate.setDate(opt.day);
             }
+            
             const actualPayDate = pDate.toISOString().split('T')[0];
 
             if (editingId) workRecords = workRecords.filter(r => r.id !== editingId);
-            workRecords.push({ id: editingId || 'id_' + Date.now(), name, date, pay, payOptionId: optId, actualPayDate });
-            localStorage.setItem('workRecords_v10', JSON.stringify(workRecords));
+            workRecords.push({ id: editingId || 'id_' + Date.now(), name, date: dateStr, pay, payOptionId: optId, actualPayDate });
+            localStorage.setItem('workRecords_v11', JSON.stringify(workRecords));
             resetForm();
             showPage('page1');
         }
@@ -303,7 +309,7 @@
         function confirmDelete() {
             if(confirm("確定要刪除這筆紀錄嗎？")) {
                 workRecords = workRecords.filter(r => r.id !== editingId);
-                localStorage.setItem('workRecords_v10', JSON.stringify(workRecords));
+                localStorage.setItem('workRecords_v11', JSON.stringify(workRecords));
                 resetForm();
                 showPage('page1');
             }
@@ -335,14 +341,12 @@
                 grandTotal += grouped[payDate].total;
                 const card = document.createElement('div');
                 card.className = 'stat-card';
-                // 這裡大標題改為領薪日！
                 card.innerHTML = `<div style="font-size:12px; opacity:0.8;">預計領薪日</div><div style="font-weight:bold; font-size:18px;">${payDate}</div><div style="font-size:26px; font-weight:bold; margin-top:5px;">$${grouped[payDate].total.toLocaleString()}</div>`;
                 
                 grouped[payDate].items.forEach(item => {
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'stat-item';
-                    // 內容標註上班日
-                    itemDiv.innerHTML = `<div style="display:flex; justify-content:space-between;"><span>${item.name}</span><span>$${item.pay.toLocaleString()}</span></div><div style="font-size:10px; opacity:0.7;">上班日: ${item.date}</div>`;
+                    itemDiv.innerHTML = `<div style="display:flex; justify-content:space-between;"><span>${item.name}</span><span>$${item.pay.toLocaleString()}</span></div><div style="font-size:11px; opacity:0.8; margin-top:2px;">📅 上班日: ${item.date}</div>`;
                     itemDiv.onclick = () => startEdit(item.id);
                     card.appendChild(itemDiv);
                 });
@@ -368,14 +372,14 @@
             const day = document.getElementById('newPayDay').value;
             if (!day) return alert("請輸入日期");
             payDayOptions.push({ id: 'opt_' + Date.now(), monthType: type, day: parseInt(day), label: `${type} ${day} 號入帳` });
-            localStorage.setItem('payDayOptions_v10', JSON.stringify(payDayOptions));
+            localStorage.setItem('payDayOptions_v11', JSON.stringify(payDayOptions));
             renderOptions();
             document.getElementById('newPayDay').value = '';
         }
 
         function deleteOption(id) {
             payDayOptions = payDayOptions.filter(o => o.id !== id);
-            localStorage.setItem('payDayOptions_v10', JSON.stringify(payDayOptions));
+            localStorage.setItem('payDayOptions_v11', JSON.stringify(payDayOptions));
             renderOptions();
         }
 
