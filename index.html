@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tell My Doggy - Salary V13</title>
+    <title>Tell My Doggy - Salary V14</title>
     <style>
         :root {
             --morandi-green: #A3B18A;
@@ -53,7 +53,7 @@
         .day.has-work::after { content: '🍡'; font-size: 10px; position: absolute; bottom: 2px; right: 2px; }
         .weekday { font-weight: bold; color: var(--morandi-light); padding-bottom: 10px; }
 
-        /* 輸入欄位對齊 */
+        /* 輸入欄位 */
         .input-group { margin-bottom: 15px; width: 100%; display: flex; flex-direction: column; align-items: center; }
         label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 14px; color: var(--morandi-green); text-align: center; }
         
@@ -68,19 +68,22 @@
             box-sizing: border-box;
             text-align: center; 
             text-align-last: center; 
-            appearance: none;
         }
 
         .main-btn { width: 100%; padding: 15px; background: var(--morandi-green); color: white; border: none; border-radius: 15px; font-size: 16px; cursor: pointer; font-weight: bold; margin-top: 10px; }
         .secondary-btn { width: 100%; padding: 10px; background: white; color: var(--morandi-light); border: 1px solid var(--morandi-light); border-radius: 15px; font-size: 14px; cursor: pointer; }
         .delete-btn { width: 100%; padding: 10px; background: white; color: var(--morandi-red); border: 1px solid var(--morandi-red); border-radius: 15px; font-size: 14px; cursor: pointer; margin-top: 10px; }
 
-        /* 統計卡片顏色分開 */
-        .stat-card { padding: 15px; border-radius: 15px; margin-bottom: 12px; color: white; transition: transform 0.2s; }
-        .type-cash { background-color: var(--morandi-green); } /* 日領用綠色 */
-        .type-fixed { background-color: var(--morandi-blue); } /* 月領用藍色 */
+        /* 統計與篩選 */
+        .filter-box { background: var(--morandi-bg); padding: 15px; border-radius: 15px; margin-bottom: 20px; }
+        .filter-box label { text-align: left; font-size: 12px; margin-bottom: 2px; color: var(--morandi-light); width: 100%; }
+        .filter-box input { padding: 8px; font-size: 14px; margin-bottom: 10px; border-radius: 10px; }
+
+        .stat-card { padding: 15px; border-radius: 15px; margin-bottom: 12px; color: white; }
+        .type-cash { background-color: var(--morandi-green); } 
+        .type-fixed { background-color: var(--morandi-blue); } 
         
-        .stat-item { font-size: 13px; margin-top: 8px; padding: 10px; background: rgba(255,255,255,0.2); border-radius: 10px; cursor: pointer; }
+        .stat-item { font-size: 13px; margin-top: 8px; padding: 10px; background: rgba(255,255,255,0.25); border-radius: 10px; cursor: pointer; }
         .total-summary { text-align: center; border-top: 1px dashed var(--morandi-light); padding-top: 15px; margin-top: 15px; }
 
         #datePopover {
@@ -137,6 +140,16 @@
 
         <div id="page3" class="page">
             <h2>薪資統計</h2>
+            <div class="filter-box">
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1;"><label>從</label><input type="date" id="filterStart"></div>
+                    <div style="flex:1;"><label>到</label><input type="date" id="filterEnd"></div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:5px;">
+                    <button class="main-btn" style="padding: 10px; flex:2;" onclick="renderStats()">套用篩選</button>
+                    <button class="secondary-btn" style="flex:1;" onclick="clearFilter()">取消</button>
+                </div>
+            </div>
             <div id="statsList"></div>
             <div class="total-summary" id="totalSummary"></div>
         </div>
@@ -160,8 +173,8 @@
 
     <script>
         let viewDate = new Date(2026, 2, 1);
-        let workRecords = JSON.parse(localStorage.getItem('workRecords_v13')) || [];
-        let payDayOptions = JSON.parse(localStorage.getItem('payDayOptions_v13')) || [
+        let workRecords = JSON.parse(localStorage.getItem('workRecords_v14')) || [];
+        let payDayOptions = JSON.parse(localStorage.getItem('payDayOptions_v14')) || [
             { id: 'opt_cash', monthType: '當月', day: 0, label: '當日現領' },
             { id: 'opt_19', monthType: '當月', day: 19, label: '當月 19 號入帳' }
         ];
@@ -228,17 +241,22 @@
 
             if (editingId) workRecords = workRecords.filter(r => r.id !== editingId);
             workRecords.push({ id: editingId || 'id_' + Date.now(), name, date: dateStr, pay, payOptionId: optId, actualPayDate });
-            localStorage.setItem('workRecords_v13', JSON.stringify(workRecords));
+            localStorage.setItem('workRecords_v14', JSON.stringify(workRecords));
             resetForm(); showPage('page1');
         }
 
         function renderStats() {
             const list = document.getElementById('statsList');
             const summary = document.getElementById('totalSummary');
+            const start = document.getElementById('filterStart').value;
+            const end = document.getElementById('filterEnd').value;
             list.innerHTML = '';
 
-            // 核心邏輯修正：嚴格按實際發薪日分組
-            const grouped = workRecords.reduce((acc, r) => {
+            let filtered = workRecords;
+            if (start && end) filtered = workRecords.filter(r => r.actualPayDate >= start && r.actualPayDate <= end);
+
+            // 關鍵：將每筆紀錄按實際發薪日「分別存放」，並記錄其類型
+            const grouped = filtered.reduce((acc, r) => {
                 const key = r.actualPayDate;
                 if (!acc[key]) acc[key] = { total: 0, items: [], isCash: r.payOptionId === 'opt_cash' };
                 acc[key].total += r.pay;
@@ -250,7 +268,6 @@
             Object.keys(grouped).sort().forEach(payDate => {
                 grandTotal += grouped[payDate].total;
                 const card = document.createElement('div');
-                // 不同發薪日類型給不同顏色
                 card.className = `stat-card ${grouped[payDate].isCash ? 'type-cash' : 'type-fixed'}`;
                 
                 card.innerHTML = `
@@ -262,13 +279,13 @@
                 grouped[payDate].items.forEach(item => {
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'stat-item';
-                    itemDiv.innerHTML = `<div>${item.name} ($${item.pay.toLocaleString()})</div><div style="font-size:11px;opacity:0.8;">工作日: ${item.date}</div>`;
+                    itemDiv.innerHTML = `<div>${item.name} ($${item.pay.toLocaleString()})</div><div style="font-size:11px;opacity:0.8;">上班日: ${item.date}</div>`;
                     itemDiv.onclick = () => startEdit(item.id);
                     card.appendChild(itemDiv);
                 });
                 list.appendChild(card);
             });
-            summary.innerHTML = `<h3>總計領取：$${grandTotal.toLocaleString()}</h3>`;
+            summary.innerHTML = `<p style="color:#999; margin-bottom:5px;">期間總計</p><h2 style="margin:0; color:var(--morandi-green);">$${grandTotal.toLocaleString()}</h2>`;
         }
 
         function renderOptions() {
@@ -286,13 +303,13 @@
             const type = document.getElementById('newPayMonthType').value;
             if (!day) return;
             payDayOptions.push({ id: 'opt_' + Date.now(), monthType: type, day: parseInt(day), label: `${type} ${day} 號入帳` });
-            localStorage.setItem('payDayOptions_v13', JSON.stringify(payDayOptions));
+            localStorage.setItem('payDayOptions_v14', JSON.stringify(payDayOptions));
             renderOptions();
         }
 
         function deleteOption(id) {
             payDayOptions = payDayOptions.filter(o => o.id !== id);
-            localStorage.setItem('payDayOptions_v13', JSON.stringify(payDayOptions));
+            localStorage.setItem('payDayOptions_v14', JSON.stringify(payDayOptions));
             renderOptions();
         }
 
@@ -320,10 +337,11 @@
         }
 
         function confirmDelete() {
-            if(confirm("要刪除嗎？")) { workRecords = workRecords.filter(r => r.id !== editingId); localStorage.setItem('workRecords_v13', JSON.stringify(workRecords)); showPage('page1'); }
+            if(confirm("要刪除嗎？")) { workRecords = workRecords.filter(r => r.id !== editingId); localStorage.setItem('workRecords_v14', JSON.stringify(workRecords)); showPage('page1'); }
         }
 
         function changeMonth(n) { viewDate.setMonth(viewDate.getMonth() + n); renderCalendar(); }
+        function clearFilter() { document.getElementById('filterStart').value = ''; document.getElementById('filterEnd').value = ''; renderStats(); }
         document.addEventListener('click', () => document.getElementById('datePopover').style.display='none');
         
         renderCalendar(); renderOptions();
