@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tell My Doggy - Salary V12</title>
+    <title>Tell My Doggy - Salary V13</title>
     <style>
         :root {
             --morandi-green: #A3B18A;
+            --morandi-blue: #8E9AAF;
             --morandi-light: #B8C1B0;
             --morandi-bg: #F4F5F2;
             --text-color: #5E6B5E;
@@ -44,7 +45,7 @@
 
         h2 { text-align: center; color: var(--morandi-green); margin-top: 0; font-size: 1.2rem; }
 
-        /* 月曆樣式 */
+        /* 月曆 */
         .calendar-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .nav-btn { background: none; border: 1px solid var(--morandi-light); color: var(--morandi-green); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
@@ -52,36 +53,33 @@
         .day.has-work::after { content: '🍡'; font-size: 10px; position: absolute; bottom: 2px; right: 2px; }
         .weekday { font-weight: bold; color: var(--morandi-light); padding-bottom: 10px; }
 
-        /* 對齊修正 */
+        /* 輸入欄位對齊 */
         .input-group { margin-bottom: 15px; width: 100%; display: flex; flex-direction: column; align-items: center; }
         label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 14px; color: var(--morandi-green); text-align: center; }
         
         input, select {
             width: 100% !important;
-            max-width: 100%;
             padding: 12px; 
             border: 2px solid var(--morandi-light); 
             border-radius: 15px;
             color: var(--text-color); 
             font-size: 16px; 
             background: white; 
-            outline: none; 
             box-sizing: border-box;
             text-align: center; 
             text-align-last: center; 
             appearance: none;
-            -webkit-appearance: none;
         }
-
-        input[type="date"] { min-height: 48px; }
 
         .main-btn { width: 100%; padding: 15px; background: var(--morandi-green); color: white; border: none; border-radius: 15px; font-size: 16px; cursor: pointer; font-weight: bold; margin-top: 10px; }
         .secondary-btn { width: 100%; padding: 10px; background: white; color: var(--morandi-light); border: 1px solid var(--morandi-light); border-radius: 15px; font-size: 14px; cursor: pointer; }
         .delete-btn { width: 100%; padding: 10px; background: white; color: var(--morandi-red); border: 1px solid var(--morandi-red); border-radius: 15px; font-size: 14px; cursor: pointer; margin-top: 10px; }
 
-        /* 統計卡片 */
-        .filter-box { background: var(--morandi-bg); padding: 15px; border-radius: 15px; margin-bottom: 20px; }
-        .stat-card { padding: 15px; border-radius: 15px; margin-bottom: 12px; color: white; background-color: var(--morandi-green); }
+        /* 統計卡片顏色分開 */
+        .stat-card { padding: 15px; border-radius: 15px; margin-bottom: 12px; color: white; transition: transform 0.2s; }
+        .type-cash { background-color: var(--morandi-green); } /* 日領用綠色 */
+        .type-fixed { background-color: var(--morandi-blue); } /* 月領用藍色 */
+        
         .stat-item { font-size: 13px; margin-top: 8px; padding: 10px; background: rgba(255,255,255,0.2); border-radius: 10px; cursor: pointer; }
         .total-summary { text-align: center; border-top: 1px dashed var(--morandi-light); padding-top: 15px; margin-top: 15px; }
 
@@ -139,16 +137,6 @@
 
         <div id="page3" class="page">
             <h2>薪資統計</h2>
-            <div class="filter-box">
-                <div style="display:flex; gap:10px;">
-                    <div style="flex:1;"><label>從</label><input type="date" id="filterStart"></div>
-                    <div style="flex:1;"><label>到</label><input type="date" id="filterEnd"></div>
-                </div>
-                <div style="display:flex; gap:10px; margin-top:5px;">
-                    <button class="main-btn" style="padding: 10px; flex:2;" onclick="renderStats()">套用篩選</button>
-                    <button class="secondary-btn" style="flex:1;" onclick="clearFilter()">取消</button>
-                </div>
-            </div>
             <div id="statsList"></div>
             <div class="total-summary" id="totalSummary"></div>
         </div>
@@ -172,36 +160,12 @@
 
     <script>
         let viewDate = new Date(2026, 2, 1);
-        let workRecords = JSON.parse(localStorage.getItem('workRecords_v12')) || [];
-        let payDayOptions = JSON.parse(localStorage.getItem('payDayOptions_v12')) || [
+        let workRecords = JSON.parse(localStorage.getItem('workRecords_v13')) || [];
+        let payDayOptions = JSON.parse(localStorage.getItem('payDayOptions_v13')) || [
             { id: 'opt_cash', monthType: '當月', day: 0, label: '當日現領' },
             { id: 'opt_19', monthType: '當月', day: 19, label: '當月 19 號入帳' }
         ];
         let editingId = null;
-
-        // 強制校正舊數據
-        function autoFixRecords() {
-            let changed = false;
-            workRecords.forEach(r => {
-                const opt = payDayOptions.find(o => o.id === r.payOptionId);
-                if (opt) {
-                    const [y, m, d] = r.date.split('-').map(Number);
-                    let pDate = new Date(y, m-1, d);
-                    if (opt.id === 'opt_cash') {
-                        // Keep current
-                    } else {
-                        if (opt.monthType === '下個月') pDate.setMonth(pDate.getMonth() + 1);
-                        pDate.setDate(opt.day);
-                    }
-                    const newPayDate = pDate.toISOString().split('T')[0];
-                    if (r.actualPayDate !== newPayDate) {
-                        r.actualPayDate = newPayDate;
-                        changed = true;
-                    }
-                }
-            });
-            if (changed) localStorage.setItem('workRecords_v12', JSON.stringify(workRecords));
-        }
 
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -209,7 +173,7 @@
             document.getElementById(pageId).classList.add('active');
             document.querySelector(`button[onclick="showPage('${pageId}')"]`).classList.add('active');
             if(pageId === 'page1') renderCalendar();
-            if(pageId === 'page3') { autoFixRecords(); renderStats(); }
+            if(pageId === 'page3') renderStats();
             if(pageId === 'page4') renderOptions();
         }
 
@@ -230,24 +194,19 @@
 
         function handleDateClick(event, dateStr) {
             const records = workRecords.filter(r => r.date === dateStr);
-            if (records.length > 1) showPopover(event, records);
-            else if (records.length === 1) startEdit(records[0].id);
+            if (records.length > 1) {
+                const popover = document.getElementById('datePopover');
+                popover.innerHTML = '';
+                records.forEach(r => {
+                    const btn = document.createElement('button');
+                    btn.innerText = r.name;
+                    btn.onclick = () => { startEdit(r.id); popover.style.display='none'; };
+                    popover.appendChild(btn);
+                });
+                popover.style.left = event.pageX + 'px'; popover.style.top = event.pageY + 'px';
+                popover.style.display = 'block'; event.stopPropagation();
+            } else if (records.length === 1) startEdit(records[0].id);
             else { resetForm(); document.getElementById('workDate').value = dateStr; showPage('page2'); }
-        }
-
-        function showPopover(event, records) {
-            const popover = document.getElementById('datePopover');
-            popover.innerHTML = '';
-            records.forEach(r => {
-                const btn = document.createElement('button');
-                btn.innerText = r.name;
-                btn.onclick = () => { startEdit(r.id); popover.style.display='none'; };
-                popover.appendChild(btn);
-            });
-            popover.style.left = event.pageX + 'px';
-            popover.style.top = event.pageY + 'px';
-            popover.style.display = 'block';
-            event.stopPropagation();
         }
 
         function saveWork() {
@@ -255,7 +214,7 @@
             const dateStr = document.getElementById('workDate').value;
             const pay = parseInt(document.getElementById('dailyPay').value);
             const optId = document.getElementById('payDaySelect').value;
-            if (!dateStr || isNaN(pay)) return alert("請輸入完整資訊");
+            if (!dateStr || isNaN(pay)) return alert("請輸入資訊");
 
             const opt = payDayOptions.find(o => o.id === optId);
             const [y, m, d] = dateStr.split('-').map(Number);
@@ -269,24 +228,21 @@
 
             if (editingId) workRecords = workRecords.filter(r => r.id !== editingId);
             workRecords.push({ id: editingId || 'id_' + Date.now(), name, date: dateStr, pay, payOptionId: optId, actualPayDate });
-            localStorage.setItem('workRecords_v12', JSON.stringify(workRecords));
-            resetForm();
-            showPage('page1');
+            localStorage.setItem('workRecords_v13', JSON.stringify(workRecords));
+            resetForm(); showPage('page1');
         }
 
         function renderStats() {
             const list = document.getElementById('statsList');
             const summary = document.getElementById('totalSummary');
             list.innerHTML = '';
-            let filtered = workRecords;
-            const start = document.getElementById('filterStart').value;
-            const end = document.getElementById('filterEnd').value;
-            if (start && end) filtered = workRecords.filter(r => r.actualPayDate >= start && r.actualPayDate <= end);
 
-            const grouped = filtered.reduce((acc, r) => {
-                acc[r.actualPayDate] = acc[r.actualPayDate] || { total: 0, items: [] };
-                acc[r.actualPayDate].total += r.pay;
-                acc[r.actualPayDate].items.push(r);
+            // 核心邏輯修正：嚴格按實際發薪日分組
+            const grouped = workRecords.reduce((acc, r) => {
+                const key = r.actualPayDate;
+                if (!acc[key]) acc[key] = { total: 0, items: [], isCash: r.payOptionId === 'opt_cash' };
+                acc[key].total += r.pay;
+                acc[key].items.push(r);
                 return acc;
             }, {});
 
@@ -294,14 +250,25 @@
             Object.keys(grouped).sort().forEach(payDate => {
                 grandTotal += grouped[payDate].total;
                 const card = document.createElement('div');
-                card.className = 'stat-card';
-                card.innerHTML = `<div style="font-size:12px;opacity:0.9;">預計領薪日</div><div style="font-size:20px;font-weight:bold;">${payDate}</div><div style="font-size:24px;margin-top:5px;">$${grouped[payDate].total.toLocaleString()}</div>`;
+                // 不同發薪日類型給不同顏色
+                card.className = `stat-card ${grouped[payDate].isCash ? 'type-cash' : 'type-fixed'}`;
+                
+                card.innerHTML = `
+                    <div style="font-size:12px;opacity:0.9;">${grouped[payDate].isCash ? '✨ 當日現領' : '📅 預計領薪'}</div>
+                    <div style="font-size:20px;font-weight:bold;">${payDate}</div>
+                    <div style="font-size:26px;font-weight:bold;margin-top:5px;">$${grouped[payDate].total.toLocaleString()}</div>
+                `;
+
                 grouped[payDate].items.forEach(item => {
-                    card.innerHTML += `<div class="stat-item" onclick="startEdit('${item.id}')"><div>${item.name} ($${item.pay.toLocaleString()})</div><div style="font-size:11px;opacity:0.8;">📅 上班日: ${item.date}</div></div>`;
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'stat-item';
+                    itemDiv.innerHTML = `<div>${item.name} ($${item.pay.toLocaleString()})</div><div style="font-size:11px;opacity:0.8;">工作日: ${item.date}</div>`;
+                    itemDiv.onclick = () => startEdit(item.id);
+                    card.appendChild(itemDiv);
                 });
                 list.appendChild(card);
             });
-            summary.innerHTML = `<h3>期間總計：$${grandTotal.toLocaleString()}</h3>`;
+            summary.innerHTML = `<h3>總計領取：$${grandTotal.toLocaleString()}</h3>`;
         }
 
         function renderOptions() {
@@ -319,13 +286,13 @@
             const type = document.getElementById('newPayMonthType').value;
             if (!day) return;
             payDayOptions.push({ id: 'opt_' + Date.now(), monthType: type, day: parseInt(day), label: `${type} ${day} 號入帳` });
-            localStorage.setItem('payDayOptions_v12', JSON.stringify(payDayOptions));
+            localStorage.setItem('payDayOptions_v13', JSON.stringify(payDayOptions));
             renderOptions();
         }
 
         function deleteOption(id) {
             payDayOptions = payDayOptions.filter(o => o.id !== id);
-            localStorage.setItem('payDayOptions_v12', JSON.stringify(payDayOptions));
+            localStorage.setItem('payDayOptions_v13', JSON.stringify(payDayOptions));
             renderOptions();
         }
 
@@ -353,13 +320,13 @@
         }
 
         function confirmDelete() {
-            if(confirm("要刪除嗎？")) { workRecords = workRecords.filter(r => r.id !== editingId); localStorage.setItem('workRecords_v12', JSON.stringify(workRecords)); showPage('page1'); }
+            if(confirm("要刪除嗎？")) { workRecords = workRecords.filter(r => r.id !== editingId); localStorage.setItem('workRecords_v13', JSON.stringify(workRecords)); showPage('page1'); }
         }
 
         function changeMonth(n) { viewDate.setMonth(viewDate.getMonth() + n); renderCalendar(); }
-        function clearFilter() { document.getElementById('filterStart').value = ''; document.getElementById('filterEnd').value = ''; renderStats(); }
-
-        renderCalendar(); renderOptions(); autoFixRecords();
+        document.addEventListener('click', () => document.getElementById('datePopover').style.display='none');
+        
+        renderCalendar(); renderOptions();
     </script>
 </body>
 </html>
