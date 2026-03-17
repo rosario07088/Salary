@@ -40,12 +40,12 @@
 
         .tab-btn {
             flex: 1;
-            padding: 15px;
+            padding: 12px 5px;
             border: none;
             background: none;
             color: white;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .tab-btn.active {
@@ -53,124 +53,68 @@
             font-weight: bold;
         }
 
-        .page { padding: 25px; display: none; }
+        .page { padding: 20px; display: none; }
         .page.active { display: block; }
 
-        .calendar-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+        h2 { text-align: center; color: var(--morandi-green); margin-top: 0; font-size: 1.2rem; }
 
-        .nav-btn {
-            background: none;
-            border: 1px solid var(--morandi-light);
-            color: var(--morandi-green);
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-        }
+        /* 月曆樣式 */
+        .calendar-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .nav-btn { background: none; border: 1px solid var(--morandi-light); color: var(--morandi-green); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; }
+        .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .day { padding: 12px 0; font-size: 14px; border-radius: 8px; position: relative; cursor: pointer; }
+        .day.has-work::after { content: '🍡'; font-size: 10px; position: absolute; bottom: 1px; right: 1px; }
+        .day:hover { background-color: var(--morandi-bg); }
 
-        .calendar {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-            text-align: center;
-        }
-
-        .day {
-            padding: 10px 0;
-            font-size: 14px;
-            border-radius: 8px;
-            position: relative;
-        }
-
-        .day.has-work::after {
-            content: '🍡';
-            font-size: 10px;
-            position: absolute;
-            bottom: 2px;
-            right: 2px;
-        }
-
-        .input-group { margin-bottom: 20px; text-align: center; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; }
-
+        /* 表單樣式 */
+        .input-group { margin-bottom: 15px; text-align: center; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
         input, select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid var(--morandi-light);
-            border-radius: 12px;
-            color: var(--morandi-green);
-            text-align: center; /* 確保文字置中 */
-            text-align-last: center; /* 針對某些手機瀏覽器的選單文字置中 */
-            font-size: 16px;
-            background: white;
-            outline: none;
-            box-sizing: border-box;
-            appearance: none;
+            width: 100%; padding: 12px; border: 2px solid var(--morandi-light); border-radius: 12px;
+            color: var(--morandi-green); text-align: center; text-align-last: center;
+            font-size: 16px; background: white; outline: none; box-sizing: border-box; appearance: none;
         }
-
         select {
             background-image: url('data:image/svg+xml;utf8,<svg fill="%23A3B18A" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-            background-repeat: no-repeat;
-            background-position: calc(100% - 10px) center;
-            padding-right: 40px;
+            background-repeat: no-repeat; background-position: calc(100% - 10px) center; padding-right: 40px;
         }
 
-        .main-btn {
-            width: 100%;
-            padding: 15px;
-            background: var(--morandi-green);
-            color: white;
-            border: none;
-            border-radius: 15px;
-            font-size: 16px;
-            cursor: pointer;
-            box-sizing: border-box;
-        }
-
-        .stat-card {
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 10px;
-            color: white;
-            text-align: center;
-        }
-
-        .list-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 10px;
-            border-bottom: 1px solid #eee;
-        }
+        .main-btn { width: 100%; padding: 15px; background: var(--morandi-green); color: white; border: none; border-radius: 15px; font-size: 16px; cursor: pointer; }
         
-        .row { display: flex; gap: 10px; margin-bottom: 20px; }
-        .col { flex: 1; }
+        /* 統計與列表 */
+        .stat-card { padding: 15px; border-radius: 12px; margin-bottom: 10px; color: white; text-align: center; }
+        .filter-box { background: #f9f9f9; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #eee; }
+        .total-sum { text-align: center; padding: 15px; border-top: 2px dashed var(--morandi-light); margin-top: 10px; font-weight: bold; font-size: 18px; color: var(--morandi-green); }
+        .list-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <div class="tabs">
-            <button class="tab-btn active" onclick="showPage('page1')">紀錄</button>
-            <button class="tab-btn" onclick="showPage('page2')">統計</button>
-            <button class="tab-btn" onclick="showPage('page3')">設定</button>
+            <button class="tab-btn active" onclick="showPage('page1')">打卡紀錄</button>
+            <button class="tab-btn" onclick="showPage('page2')">紀錄</button>
+            <button class="tab-btn" onclick="showPage('page3')">統計</button>
+            <button class="tab-btn" onclick="showPage('page4')">設定</button>
         </div>
 
         <div id="page1" class="page active">
+            <h2>打卡紀錄</h2>
             <div class="calendar-nav">
                 <button class="nav-btn" onclick="changeMonth(-1)">❮</button>
-                <h2 id="currentMonthDisplay" style="margin:0; color:var(--morandi-green); font-size: 1.2rem;">2026 年 3 月</h2>
+                <h3 id="currentMonthDisplay" style="margin:0; color:var(--morandi-green);">2026 年 3 月</h3>
                 <button class="nav-btn" onclick="changeMonth(1)">❯</button>
             </div>
             <div class="calendar" id="calendarGrid"></div>
+            <p style="font-size: 12px; color: #999; text-align: center; margin-top: 15px;">※ 點擊有 🍡 的日期可修改資料</p>
+        </div>
 
-            <hr style="margin: 25px 0; border: 0.5px solid #eee;">
-
+        <div id="page2" class="page">
+            <h2 id="formTitle">新增紀錄</h2>
+            <div class="input-group">
+                <label>工作名稱</label>
+                <input type="text" id="workName" placeholder="例如：品牌促銷、外場支援">
+            </div>
             <div class="input-group">
                 <label>上班日期</label>
                 <input type="date" id="workDate">
@@ -183,62 +127,66 @@
                 <label>領薪設定</label>
                 <select id="payDaySelect"></select>
             </div>
-            <button class="main-btn" onclick="saveWork()">儲存上班紀錄</button>
-        </div>
-
-        <div id="page2" class="page">
-            <h2 style="text-align:center; color:var(--morandi-green); margin-top: 0;">薪資統計</h2>
-            <div id="statsList"></div>
+            <button class="main-btn" id="saveBtn" onclick="saveWork()">儲存上班紀錄</button>
+            <button id="cancelEditBtn" style="display:none; width:100%; background:none; border:none; color:#999; margin-top:10px;" onclick="resetForm()">取消修改</button>
         </div>
 
         <div id="page3" class="page">
-            <h2 style="text-align:center; color:var(--morandi-green); margin-top: 0;">管理領薪日</h2>
+            <h2>薪資統計</h2>
+            <div class="filter-box">
+                <label style="margin-bottom:10px;">查詢區間</label>
+                <input type="date" id="filterStart" style="margin-bottom:5px;">
+                <input type="date" id="filterEnd">
+                <button class="main-btn" style="margin-top:10px; padding:8px; font-size:14px; background:var(--morandi-light);" onclick="renderStats()">套用篩選</button>
+            </div>
+            <div id="statsList"></div>
+            <div id="totalDisplay" class="total-sum"></div>
+        </div>
+
+        <div id="page4" class="page">
+            <h2>管理領薪日</h2>
             <div class="input-group">
                 <label>新增發薪日</label>
-                <div class="row">
-                    <div class="col">
-                        <select id="newPayMonthType">
-                            <option value="當月">當月</option>
-                            <option value="下個月" selected>下個月</option>
-                            <option value="當日">當日</option>
-                        </select>
-                    </div>
-                    <div class="col" style="flex: 1.5;">
-                        <input type="number" id="newPayDay" placeholder="幾號？">
-                    </div>
+                <div style="display:flex; gap:10px;">
+                    <select id="newPayMonthType">
+                        <option value="當月">當月</option>
+                        <option value="下個月" selected>下個月</option>
+                        <option value="當日">當日</option>
+                    </select>
+                    <input type="number" id="newPayDay" placeholder="幾號？" style="flex:1.5;">
                 </div>
             </div>
-            <button class="main-btn" onclick="addPayDayOption()" style="background:var(--morandi-light);">新增選項</button>
-            
-            <div id="currentOptions" style="margin-top:25px;">
-                <p style="font-size:12px; color: #999; margin-bottom: 5px;">目前的選項：</p>
-                <div id="optionsList"></div>
-            </div>
+            <button class="main-btn" onclick="addPayDayOption()" style="background:var(--morandi-light);">新增發薪選項</button>
+            <div id="optionsList" style="margin-top:20px;"></div>
         </div>
     </div>
 
     <script>
         let currentDate = new Date(2026, 2, 1);
-        let workRecords = JSON.parse(localStorage.getItem('workRecords_v4')) || [];
-        let payDayOptions = JSON.parse(localStorage.getItem('payDayOptions_v4')) || [
+        let workRecords = JSON.parse(localStorage.getItem('workRecords_v5')) || [];
+        let payDayOptions = JSON.parse(localStorage.getItem('payDayOptions_v5')) || [
             { id: '當日_0', monthType: '當日', day: 0, label: '當日現領' },
             { id: '下個月_5', monthType: '下個月', day: 5, label: '下個月 5 號入帳' },
             { id: '下個月_20', monthType: '下個月', day: 20, label: '下個月 20 號入帳' }
         ];
+        let editingDate = null; // 用於判斷是否正在修改
 
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
-            event.currentTarget.classList.add('active');
-            if(pageId === 'page2') renderStats();
+            const targetBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick').includes(pageId));
+            if(targetBtn) targetBtn.classList.add('active');
+            
+            if(pageId === 'page1') renderCalendar();
+            if(pageId === 'page3') renderStats();
         }
 
+        // --- 第一頁：月曆邏輯 ---
         function renderCalendar() {
             const grid = document.getElementById('calendarGrid');
             const display = document.getElementById('currentMonthDisplay');
             grid.innerHTML = '';
-            
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
             display.innerText = `${year} 年 ${month + 1} 月`;
@@ -247,11 +195,31 @@
             const daysInMonth = new Date(year, month + 1, 0).getDate();
 
             for (let i = 0; i < firstDay; i++) grid.innerHTML += '<div></div>';
-            
             for (let d = 1; d <= daysInMonth; d++) {
                 const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 const hasWork = workRecords.some(r => r.date === dateKey);
-                grid.innerHTML += `<div class="day ${hasWork ? 'has-work' : ''}">${d}</div>`;
+                grid.innerHTML += `<div class="day ${hasWork ? 'has-work' : ''}" onclick="clickDate('${dateKey}')">${d}</div>`;
+            }
+        }
+
+        function clickDate(dateStr) {
+            const record = workRecords.find(r => r.date === dateStr);
+            if (record) {
+                // 如果有點過，帶入資料到第二頁進行修改
+                editingDate = dateStr;
+                document.getElementById('formTitle').innerText = "修改紀錄";
+                document.getElementById('workName').value = record.name || "";
+                document.getElementById('workDate').value = record.date;
+                document.getElementById('dailyPay').value = record.pay;
+                document.getElementById('payDaySelect').value = record.payOptionId;
+                document.getElementById('saveBtn').innerText = "確認修改";
+                document.getElementById('cancelEditBtn').style.display = "block";
+                showPage('page2');
+            } else {
+                // 如果沒點過，切換到第二頁並帶入日期
+                resetForm();
+                document.getElementById('workDate').value = dateStr;
+                showPage('page2');
             }
         }
 
@@ -260,14 +228,106 @@
             renderCalendar();
         }
 
+        // --- 第二頁：儲存/修改邏輯 ---
+        function resetForm() {
+            editingDate = null;
+            document.getElementById('formTitle').innerText = "新增紀錄";
+            document.getElementById('workName').value = "";
+            document.getElementById('workDate').valueAsDate = new Date();
+            document.getElementById('dailyPay').value = "";
+            document.getElementById('saveBtn').innerText = "儲存上班紀錄";
+            document.getElementById('cancelEditBtn').style.display = "none";
+        }
+
+        function saveWork() {
+            const name = document.getElementById('workName').value || "未命名工作";
+            const dateInput = document.getElementById('workDate').value;
+            const pay = parseFloat(document.getElementById('dailyPay').value);
+            const payOptionId = document.getElementById('payDaySelect').value;
+            if (!dateInput || isNaN(pay)) return alert('請填寫完整資訊');
+
+            const payOption = payDayOptions.find(opt => opt.id === payOptionId);
+            const [y, m, d] = dateInput.split('-').map(Number);
+            let pYear = y, pMonth = m - 1, pDay = d;
+
+            if (payOption.monthType === '當月') pDay = payOption.day;
+            else if (payOption.monthType === '下個月') { pMonth += 1; pDay = payOption.day; }
+            
+            const finalPayDate = new Date(pYear, pMonth, pDay);
+            const actualPayDateStr = `${finalPayDate.getFullYear()}-${String(finalPayDate.getMonth()+1).padStart(2,'0')}-${String(finalPayDate.getDate()).padStart(2,'0')}`;
+
+            // 如果是修改，先刪除舊的
+            if (editingDate) {
+                workRecords = workRecords.filter(r => r.date !== editingDate);
+            }
+
+            workRecords.push({ name, date: dateInput, pay, payOptionId, actualPayDate: actualPayDateStr });
+            localStorage.setItem('workRecords_v5', JSON.stringify(workRecords));
+            alert(editingDate ? '修改成功！' : '儲存成功！');
+            resetForm();
+            showPage('page1');
+        }
+
+        // --- 第三頁：統計篩選邏輯 ---
+        function renderStats() {
+            const start = document.getElementById('filterStart').value;
+            const end = document.getElementById('filterEnd').value;
+            const container = document.getElementById('statsList');
+            const totalBox = document.getElementById('totalDisplay');
+            container.innerHTML = '';
+            
+            let filtered = workRecords;
+            if (start && end) {
+                filtered = workRecords.filter(r => r.actualPayDate >= start && r.actualPayDate <= end);
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#ccc;">區間內無紀錄</p>';
+                totalBox.innerText = '區間加總：$0';
+                return;
+            }
+
+            // 按領薪日分組顯示
+            const grouped = filtered.reduce((acc, r) => {
+                if (!acc[r.actualPayDate]) acc[r.actualPayDate] = { total: 0, items: [] };
+                acc[r.actualPayDate].total += r.pay;
+                acc[r.actualPayDate].items.push(r);
+                return acc;
+            }, {});
+
+            const sortedDates = Object.keys(grouped).sort();
+            let grandTotal = 0;
+            const colors = ['#A3B18A', '#95A3B3', '#8DA994', '#B8C1B0'];
+
+            sortedDates.forEach((dateStr, index) => {
+                const [y, m, d] = dateStr.split('-');
+                const total = grouped[dateStr].total;
+                grandTotal += total;
+                
+                let itemsHtml = grouped[dateStr].items.map(item => 
+                    `<div style="font-size:12px; opacity:0.9;">└ ${item.name}: $${item.pay}</div>`
+                ).join('');
+
+                container.innerHTML += `
+                    <div class="stat-card" style="background:${colors[index % colors.length]}">
+                        <div style="font-size:14px; font-weight:bold;">${y}年${parseInt(m)}月${parseInt(d)}日 領取</div>
+                        <div style="font-size:24px; font-weight:bold;">$${total.toLocaleString()}</div>
+                        ${itemsHtml}
+                    </div>
+                `;
+            });
+
+            totalBox.innerHTML = `<span style="font-size:14px; color:#999;">區間總計金額</span><br>$${grandTotal.toLocaleString()}`;
+        }
+
+        // --- 第四頁：發薪日管理 (維持不變) ---
         function updatePayDayUI() {
             const select = document.getElementById('payDaySelect');
             const list = document.getElementById('optionsList');
-            select.innerHTML = '';
-            list.innerHTML = '';
+            select.innerHTML = ''; list.innerHTML = '';
             payDayOptions.forEach(opt => {
                 select.innerHTML += `<option value="${opt.id}">${opt.label}</option>`;
-                list.innerHTML += `<div class="list-item"><span>${opt.label}</span><span style="color: #ccc; cursor:pointer;" onclick="deleteOption('${opt.id}')">✕</span></div>`;
+                list.innerHTML += `<div class="list-item"><span>${opt.label}</span><span style="color:#ccc; cursor:pointer;" onclick="deleteOption('${opt.id}')">✕</span></div>`;
             });
         }
 
@@ -276,88 +336,22 @@
             let day = parseInt(document.getElementById('newPayDay').value);
             let label = (monthType === '當日') ? "當日現領" : `${monthType} ${day} 號入帳`;
             let id = `${monthType}_${day || 0}`;
-
-            if (monthType !== '當日' && (!day || day < 1 || day > 31)) return alert('請輸入日期');
-            if (payDayOptions.some(opt => opt.id === id)) return alert('已存在');
-
+            if (monthType !== '當日' && (!day || day < 1 || day > 31)) return alert('日期錯誤');
             payDayOptions.push({ id, monthType, day: day || 0, label });
-            localStorage.setItem('payDayOptions_v4', JSON.stringify(payDayOptions));
+            localStorage.setItem('payDayOptions_v5', JSON.stringify(payDayOptions));
             updatePayDayUI();
         }
 
         function deleteOption(id) {
             payDayOptions = payDayOptions.filter(opt => opt.id !== id);
-            localStorage.setItem('payDayOptions_v4', JSON.stringify(payDayOptions));
+            localStorage.setItem('payDayOptions_v5', JSON.stringify(payDayOptions));
             updatePayDayUI();
         }
 
-        function saveWork() {
-            const dateInput = document.getElementById('workDate').value; // yyyy-mm-dd
-            const pay = parseFloat(document.getElementById('dailyPay').value);
-            const payOptionId = document.getElementById('payDaySelect').value;
-            if (!dateInput || !pay) return alert('請填寫完整資訊');
-
-            const payOption = payDayOptions.find(opt => opt.id === payOptionId);
-            
-            // 重要：修正日期計算偏差
-            const [y, m, d] = dateInput.split('-').map(Number);
-            let pYear = y, pMonth = m - 1, pDay = d;
-
-            if (payOption.monthType === '當月') {
-                pDay = payOption.day;
-            } else if (payOption.monthType === '下個月') {
-                pMonth += 1;
-                pDay = payOption.day;
-            }
-            // 如果是「當日」，則維持 y, m-1, d
-
-            const finalPayDate = new Date(pYear, pMonth, pDay);
-            const actualPayDateStr = `${finalPayDate.getFullYear()}-${String(finalPayDate.getMonth()+1).padStart(2,'0')}-${String(finalPayDate.getDate()).padStart(2,'0')}`;
-
-            workRecords.push({ 
-                date: dateInput, 
-                pay, 
-                payOptionId: payOptionId,
-                actualPayDate: actualPayDateStr
-            });
-            localStorage.setItem('workRecords_v4', JSON.stringify(workRecords));
-            renderCalendar();
-            alert('儲存成功！');
-        }
-
-        function renderStats() {
-            const container = document.getElementById('statsList');
-            container.innerHTML = '';
-            if (workRecords.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#ccc; margin-top:30px;">尚無紀錄</p>';
-                return;
-            }
-
-            const grouped = workRecords.reduce((acc, r) => {
-                if (!acc[r.actualPayDate]) acc[r.actualPayDate] = 0;
-                acc[r.actualPayDate] += r.pay;
-                return acc;
-            }, {});
-
-            const sortedDates = Object.keys(grouped).sort();
-            const colors = ['#A3B18A', '#95A3B3', '#8DA994', '#B8C1B0'];
-
-            sortedDates.forEach((dateStr, index) => {
-                const [y, m, d] = dateStr.split('-');
-                const displayDate = `${y}年${parseInt(m)}月${parseInt(d)}日`;
-                
-                container.innerHTML += `
-                    <div class="stat-card" style="background:${colors[index % colors.length]}">
-                        <div style="font-size:14px; opacity:0.8; margin-bottom:5px;">${displayDate} 領取</div>
-                        <div style="font-size:26px; font-weight:bold;">$${grouped[dateStr].toLocaleString()}</div>
-                    </div>
-                `;
-            });
-        }
-
+        // 初始化
         updatePayDayUI();
         renderCalendar();
-        document.getElementById('workDate').valueAsDate = new Date();
+        resetForm();
     </script>
 </body>
 </html>
