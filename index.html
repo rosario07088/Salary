@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Salary Calculator</title>
+    <title>Tell My Doggy - Salary</title>
     <style>
         :root {
             --morandi-green: #A3B18A;
@@ -56,7 +56,6 @@
         .page { padding: 25px; display: none; }
         .page.active { display: block; }
 
-        /* 月曆標題與滑動控制 */
         .calendar-nav {
             display: flex;
             justify-content: space-between;
@@ -89,40 +88,37 @@
             position: relative;
         }
 
+        /* 標記從 💰 改成 🍡 */
         .day.has-work::after {
-            content: '💰';
+            content: '🍡';
             font-size: 10px;
             position: absolute;
             bottom: 2px;
             right: 2px;
         }
 
-        /* 莫蘭迪風格輸入框 - 修正邊距與置中 */
         .input-group { margin-bottom: 20px; text-align: center; }
         label { display: block; margin-bottom: 8px; font-weight: bold; }
 
         input, select {
             width: 100%;
-            padding: 12px 15px; /* 增加左右 padding 防止卡邊 */
+            padding: 12px 15px;
             border: 2px solid var(--morandi-light);
             border-radius: 12px;
             color: var(--morandi-green);
-            text-align: center; /* 文字置中 */
+            text-align: center;
             font-size: 16px;
             background: white;
             outline: none;
-            box-sizing: border-box; /* 重要：防止 padding 撐大元素 */
-            -webkit-appearance: none; /* 移除手機端默認樣式 */
-            -moz-appearance: none;
+            box-sizing: border-box;
             appearance: none;
         }
 
-        /* 讓 select 在置中的同時保持箭頭 */
         select {
             background-image: url('data:image/svg+xml;utf8,<svg fill="%23A3B18A" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
             background-repeat: no-repeat;
             background-position: calc(100% - 10px) center;
-            padding-right: 40px; /* 為箭頭留出空間 */
+            padding-right: 40px;
         }
 
         input:focus, select:focus { border-color: var(--morandi-green); }
@@ -139,7 +135,6 @@
             box-sizing: border-box;
         }
 
-        /* 統計卡片 */
         .stat-card {
             padding: 20px;
             border-radius: 15px;
@@ -148,7 +143,6 @@
             text-align: center;
         }
 
-        /* 列表樣式 */
         .list-item {
             display: flex;
             justify-content: space-between;
@@ -208,10 +202,11 @@
                         <select id="newPayMonthType">
                             <option value="當月">當月</option>
                             <option value="下個月" selected>下個月</option>
+                            <option value="當日">當日</option>
                         </select>
                     </div>
                     <div class="col" style="flex: 1.5;">
-                        <input type="number" id="newPayDay" placeholder="幾號？ (1-31)">
+                        <input type="number" id="newPayDay" placeholder="幾號？ (現領不需填)">
                     </div>
                 </div>
             </div>
@@ -225,12 +220,13 @@
     </div>
 
     <script>
-        let currentDate = new Date(2026, 2, 1); // 月曆初始日期：2026年3月
-        let workRecords = JSON.parse(localStorage.getItem('workRecords_v2')) || [];
-        // 領薪日選項儲存格式升級為物件 array
-        let payDayOptions = JSON.parse(localStorage.getItem('payDayOptions_v2')) || [
-            { id: '下個月_5', monthType: '下個月', day: 5 },
-            { id: '下個月_10', monthType: '下個月', day: 10 }
+        let currentDate = new Date(2026, 2, 1);
+        let workRecords = JSON.parse(localStorage.getItem('workRecords_v3')) || [];
+        // 初始化預設選項，包含「當日現領」
+        let payDayOptions = JSON.parse(localStorage.getItem('payDayOptions_v3')) || [
+            { id: '當日_0', monthType: '當日', day: 0, label: '當日現領' },
+            { id: '下個月_5', monthType: '下個月', day: 5, label: '下個月 5 號入帳' },
+            { id: '下個月_10', monthType: '下個月', day: 10, label: '下個月 10 號入帳' }
         ];
 
         function showPage(pageId) {
@@ -241,7 +237,6 @@
             if(pageId === 'page2') renderStats();
         }
 
-        // 月曆渲染主函數
         function renderCalendar() {
             const grid = document.getElementById('calendarGrid');
             const display = document.getElementById('currentMonthDisplay');
@@ -256,14 +251,9 @@
 
             for (let i = 0; i < firstDay; i++) grid.innerHTML += '<div></div>';
             
-            const currentMonthRecords = workRecords.filter(r => {
-                const rDate = new Date(r.date);
-                return rDate.getFullYear() === year && rDate.getMonth() === month;
-            });
-
             for (let d = 1; d <= daysInMonth; d++) {
                 const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                const hasWork = currentMonthRecords.some(r => r.date === dateKey);
+                const hasWork = workRecords.some(r => r.date === dateKey);
                 grid.innerHTML += `<div class="day ${hasWork ? 'has-work' : ''}">${d}</div>`;
             }
         }
@@ -273,46 +263,52 @@
             renderCalendar();
         }
 
-        // 更新下拉選單和設定頁面列表
         function updatePayDayUI() {
             const select = document.getElementById('payDaySelect');
             const list = document.getElementById('optionsList');
             select.innerHTML = '';
             list.innerHTML = '';
             payDayOptions.forEach(opt => {
-                select.innerHTML += `<option value="${opt.id}">${opt.monthType} ${opt.day} 號入帳</option>`;
+                select.innerHTML += `<option value="${opt.id}">${opt.label}</option>`;
                 list.innerHTML += `
                     <div class="list-item">
-                        <span>${opt.monthType} ${opt.day} 號</span>
+                        <span>${opt.label}</span>
                         <span style="color: #ccc; cursor:pointer;" onclick="deleteOption('${opt.id}')">✕</span>
                     </div>`;
             });
         }
 
-        // 新增領薪日選項
         function addPayDayOption() {
             const monthType = document.getElementById('newPayMonthType').value;
-            const day = parseInt(document.getElementById('newPayDay').value);
-            if (!day || day < 1 || day > 31) return alert('請輸入正確的日期 (1-31)');
+            let day = parseInt(document.getElementById('newPayDay').value);
+            let label = "";
+            let id = "";
 
-            const id = `${monthType}_${day}`;
+            if (monthType === '當日') {
+                day = 0;
+                label = "當日現領";
+                id = "當日_0";
+            } else {
+                if (!day || day < 1 || day > 31) return alert('請輸入正確的日期 (1-31)');
+                label = `${monthType} ${day} 號入帳`;
+                id = `${monthType}_${day}`;
+            }
+
             if (payDayOptions.some(opt => opt.id === id)) return alert('此選項已存在');
 
-            payDayOptions.push({ id, monthType, day });
-            localStorage.setItem('payDayOptions_v2', JSON.stringify(payDayOptions));
+            payDayOptions.push({ id, monthType, day, label });
+            localStorage.setItem('payDayOptions_v3', JSON.stringify(payDayOptions));
             updatePayDayUI();
             document.getElementById('newPayDay').value = '';
             alert('已新增');
         }
 
-        // 刪除選項（輔助功能）
         function deleteOption(id) {
             payDayOptions = payDayOptions.filter(opt => opt.id !== id);
-            localStorage.setItem('payDayOptions_v2', JSON.stringify(payDayOptions));
+            localStorage.setItem('payDayOptions_v3', JSON.stringify(payDayOptions));
             updatePayDayUI();
         }
 
-        // 儲存上班紀錄
         function saveWork() {
             const dateInput = document.getElementById('workDate').value;
             const pay = parseFloat(document.getElementById('dailyPay').value);
@@ -322,25 +318,28 @@
             const workDate = new Date(dateInput);
             const payOption = payDayOptions.find(opt => opt.id === payOptionId);
             
-            // 計算實際發薪日期 (用來排序和顯示)
-            let payDate = new Date(workDate.getFullYear(), workDate.getMonth(), payOption.day);
-            if (payOption.monthType === '下個月') {
-                payDate.setMonth(payDate.getMonth() + 1);
+            let payDate;
+            if (payOption.monthType === '當日') {
+                payDate = new Date(workDate);
+            } else {
+                payDate = new Date(workDate.getFullYear(), workDate.getMonth(), payOption.day);
+                if (payOption.monthType === '下個月') {
+                    payDate.setMonth(payDate.getMonth() + 1);
+                }
             }
 
             workRecords.push({ 
                 date: dateInput, 
                 pay, 
                 payOptionId: payOptionId,
-                actualPayDate: payDate.toISOString().split('T')[0] // 儲存 yyyy-mm-dd
+                actualPayDate: payDate.toISOString().split('T')[0]
             });
-            localStorage.setItem('workRecords_v2', JSON.stringify(workRecords));
+            localStorage.setItem('workRecords_v3', JSON.stringify(workRecords));
             renderCalendar();
             document.getElementById('dailyPay').value = '';
             alert('儲存成功！');
         }
 
-        // 渲染統計頁面
         function renderStats() {
             const container = document.getElementById('statsList');
             container.innerHTML = '';
@@ -349,16 +348,13 @@
                 return;
             }
 
-            // 按實際領薪日期分組
             const grouped = workRecords.reduce((acc, r) => {
                 if (!acc[r.actualPayDate]) acc[r.actualPayDate] = 0;
                 acc[r.actualPayDate] += r.pay;
                 return acc;
             }, {});
 
-            // 排序日期
             const sortedDates = Object.keys(grouped).sort();
-
             const colors = ['#A3B18A', '#95A3B3', '#8DA994', '#B8C1B0'];
 
             sortedDates.forEach((dateStr, index) => {
@@ -368,14 +364,13 @@
                 
                 container.innerHTML += `
                     <div class="stat-card" style="background:${colors[index % colors.length]}">
-                        <div style="font-size:14px; opacity:0.8; margin-bottom:5px;">${displayDate} 發薪</div>
+                        <div style="font-size:14px; opacity:0.8; margin-bottom:5px;">${displayDate} 領取</div>
                         <div style="font-size:26px; font-weight:bold;">$${total.toLocaleString()}</div>
                     </div>
                 `;
             });
         }
 
-        // 初始化
         updatePayDayUI();
         renderCalendar();
         document.getElementById('workDate').valueAsDate = new Date();
